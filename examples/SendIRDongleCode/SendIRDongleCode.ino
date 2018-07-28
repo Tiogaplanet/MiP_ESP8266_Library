@@ -17,6 +17,19 @@
 */
 
 #include <mip.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+#include <RemoteDebug.h>
+
+// Replace the dots with your access point ssid and password.
+const char* ssid = ".............";
+const char* password = ".............";
+const char* hostname = "MiP-0x01";
+
+MiP         mip;
+RemoteDebug Debug;
 
 // Try different values for VALID_DATA_BYTES (2, 3 or 4)
 #define VALID_DATA_BYTES 4
@@ -26,32 +39,46 @@
 
 #define MAX_DATA_BYTES 4
 
-MiP  mip;
 bool connectResult;
 
-// Try different codes for dongleCode[]. For valid codes, refer to readme.md included with this library or visit
+// Try different codes for dongleCode[]. For valid codes visit
 // https://github.com/adamgreen/MiP_ProMini-Pack/blob/master/Arduino/MiP_ProMini_Pack_Library/README.md
-const uint8_t dongleCode[4] = { 0xBB, 0x0AB, 0xFF, 0xFF };
+uint8_t dongleCode[4] = { 0xBB, 0x0AB, 0xFF, 0xFF };
 
 void setup() {
-  connectResult = mip.begin();
-  if (!connectResult)
-  {
-    Serial.println(F("Failed connecting to MiP!"));
-    return;
+  // Bring up WiFi first.  It will give MiP a chance to be ready.
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    delay(5000);
+    ESP.restart();
   }
 
-  Serial.println(F("SendIRDongleCode.ino - Send code to another MiP using IR."));
+  ArduinoOTA.setHostname(hostname);
+
+  ArduinoOTA.begin();
+
+  // Start the debugging telnet server with hostname set.
+  Debug.begin(hostname);
+
+  // Allow a reset to the ESP8266 from the telnet client.
+  Debug.setResetCmdEnabled(true);
+
+  connectResult = mip.begin();
 }
 
 void loop() {
-  Serial.print(F("Sending "));
+  ArduinoOTA.handle();
+
+  DEBUG_I("Sending ");
   for (int i = MAX_DATA_BYTES - VALID_DATA_BYTES; i < MAX_DATA_BYTES; i++) {
-    Serial.print(dongleCode[i], HEX); Serial.print(F(" "));
+    DEBUG_I("0x%02X ", dongleCode[i]);
   }
-  Serial.println();
+  DEBUG_I("\n");
 
   mip.sendIRDongleCode(dongleCode, VALID_DATA_BYTES, MIP_IR_TX_POWER);
 
   delay(1000);
+
+  Debug.handle();
 }
