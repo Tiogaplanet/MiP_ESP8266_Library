@@ -22,12 +22,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "queue.h"
-
-// Default pin used by the TS3USB221A switch to connect Serial to the MiP or PC.
-//   Set to HIGH, it selects the MiP.
-//   Set to LOW, it selects the PC.
-#define MIP_UART_SELECT_PIN 2
-
+#include "RemoteDebug.h"
 
 // Integer error codes that can be encountered by MiP API functions.
 #define MIP_ERROR_NONE          0 // Success
@@ -429,7 +424,7 @@ class MiP
 {
 public:
     // Constructor/Destructors.
-    MiP(int8_t serialSelectPin = MIP_UART_SELECT_PIN);
+    MiP();
     ~MiP();
 
     bool begin();
@@ -554,49 +549,6 @@ public:
     int8_t rawReceive(const uint8_t request[], size_t requestLength,
                       uint8_t responseBuffer[], size_t responseBufferSize, size_t& responseLength);
 
-    // Serial is shared between the MiP and the PC on the MiP ProMini Pack.
-    // You shouldn't need to use these functions directly as just calling Serial.print() or Serial.println() from your
-    // code will automatically end up calling these functions for you as needed.
-    void switchSerialToMiP()
-    {
-        Serial.flush();
-        digitalWrite(m_serialSelectPin, HIGH);
-    }
-    void switchSerialToPC()
-    {
-        Serial.flush();
-        digitalWrite(m_serialSelectPin, LOW);
-    }
-    bool isSerialGoingToMiP()
-    {
-        return digitalRead(m_serialSelectPin) == HIGH;
-    }
-    static void switchInstanceSerialToMiP()
-    {
-        if (s_pInstance)
-        {
-            s_pInstance->switchSerialToMiP();
-        }
-    }
-    static void switchInstanceSerialToPC()
-    {
-        if (s_pInstance)
-        {
-            s_pInstance->switchSerialToPC();
-        }
-    }
-    static bool isInstanceSerialGoingToMiP()
-    {
-        if (s_pInstance)
-        {
-            return s_pInstance->isSerialGoingToMiP();
-        }
-        else
-        {
-            return false;
-        }
-    }
-
 protected:
     void    clear();
 
@@ -669,7 +621,6 @@ protected:
     uint32_t                     m_lastRequestTime;
     uint32_t                     m_lastContinuousDriveTime;
     uint8_t                      m_flags;
-    int8_t                       m_serialSelectPin;
     uint8_t                      m_responseBuffer[MIP_RESPONSE_MAX_LEN];
     uint8_t                      m_expectedResponseCommand;
     uint8_t                      m_expectedResponseSize;
