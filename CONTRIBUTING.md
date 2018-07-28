@@ -1,0 +1,1 @@
+Thank you for taking the time to contribute to this library!  This is a small project and it is meant to be easy and fun to use.  Contributions that expand upon MiP's capabilities are highly encouraged.  If you can improve this library or if you've identified a bug, please send a pull request.
