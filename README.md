@@ -10,29 +10,8 @@ The [WowWee MiP](https://wowwee.com/mip) is a hacker friendly self-balancing rob
 * Detecting the MiP's current pose via its inertial sensors, the same sensors that make its balancing magic possible.
 * And More!
 
-The MiP ProMini Pack was [originally designed by Sparkfun](https://www.sparkfun.com/products/retired/13058) but has since been retired. [This retired Sparkfun tutorial](https://learn.sparkfun.com/tutorials/hacking-the-mip---promini-pack) is still the best place to learn about opening up your MiP and installing the MiP ProMini Pack. Once installed, this is what your MiP will look like:<br>
-<img src="https://raw.githubusercontent.com/adamgreen/MiP_ProMini-Pack/master/images/20180416-02.jpg" alt="MiP with ProMini Pack on its back" width="240" height="320" border="10" /><br>
-Once you have it mounted, attach your [FTDI cable](https://www.sparkfun.com/products/9718), [install the MiP ProMini Pack library in the Arduino IDE](https://learn.sparkfun.com/tutorials/installing-an-arduino-library), start hacking and have fun!
-
-## Limitations
-One of the cool features that Sparkfun built into the original MiP ProMini Pack is the ability to use the hardware Serial port for communicating with both the MiP and the Arduino IDE's serial monitor. It accomplishes this great feat by using a switch that can direct the Serial traffic to the appropriate target based on the setting of pin 2. Once you call begin() on the MiP object, the Serial traffic will be directed to the MiP except when your code issues print commands such as ```Serial.println("Hello World");```. The library will detect such print calls and automatically direct the resulting Serial traffic to the Arduino IDE and then switch it back to the MiP once the data has been received by the Arduino IDE.
-
-What limitations does this put on your usage of ```Serial.println()``` and ```Serial.print()``` calls?
-* Don't use other libraries which send information to the Arduino IDE. Their data will end up being sent to the MiP instead. Only code which ```#include <mip.h>``` will automatically have their print output redirected to the Arduino IDE.
-* There are some functions in the library that rely on receiving updates/events that the MiP sends to your Arduino while you are running your awesome code. These include:
-  * Radar measurement updates
-  * Hand gesture events
-  * Battery level updates
-  * MiP pose updates (standing upright, laying face down, etc)
-  * Clap events
-  * Weight updates
-  * Shake events
-  * Infrared events (detecting other MiPs and receiving their IR codes)
-* If you are sending a lot of data to the Arduino IDE in between MiP function calls, you might cause these updates/events to be lost.
-* There is a LED labelled **MiP UART** towards the lower right corner of the MiP ProMini Pack. This will be lit when Serial is switched to exchange data with the MiP.
-* If you see that it is off most of the time, then you are likely to miss these updates/events.
-* If you find your code isn't receiving expected updates/events then double check that you aren't sending too much data to the Arduino IDE.
-* It is probably best to not attempt receiving data sent from the Arduino IDE. Calling functions like ```Serial.read()``` from your code is likely to read MiP updates and not Arduino IDE data from the Serial receive buffer.
+## Acknowledgement
+This library is a port of @adamgreen's MiP_ProMini Pack.  This hack provides all the same functionality as his original library but with cloud-connectivity too!
 
 ## Examples
 * [ChestLED](https://github.com/adamgreen/MiP_ProMini-Pack/blob/master/Arduino/MiP_ProMini_Pack_Library/examples/ChestLED/ChestLED.ino): Take control of the RGB LED in the chest of the MiP.
