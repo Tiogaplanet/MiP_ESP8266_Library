@@ -548,7 +548,7 @@ public:
     int8_t rawReceive(const uint8_t request[], size_t requestLength,
                       uint8_t responseBuffer[], size_t responseBufferSize, size_t& responseLength);
 
-    // Serial is shared between the MiP and the PC on the MiP ProMini Pack.
+    // Serial is shared between the MiP and the PC on the D1 mini.
     // You shouldn't need to use these functions directly as just calling Serial.print() or Serial.println() from your
     // code will automatically end up calling these functions for you as needed.
     void switchSerialToMiP()
@@ -691,7 +691,7 @@ protected:
 
 
 
-// This class can be used instead of Serial for sending text to the PC. It makes sure that the MiP ProMini Pack switches
+// This class can be used instead of Serial for sending text to the PC. It makes sure that the D1 mini switches
 // the UART signals away from the MiP and to the PC before actually performing the Serial write.
 class MiPStream : public Stream
 {

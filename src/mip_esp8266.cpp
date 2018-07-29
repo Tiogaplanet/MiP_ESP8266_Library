@@ -2491,7 +2491,7 @@ uint8_t MiP::discardUnexpectedSerialData()
 
 
 
-// This class can be used instead of Serial for sending text to the PC. It makes sure that the MiP ProMini Pack switches
+// This class can be used instead of Serial for sending text to the PC. It makes sure that the D1 mini switches
 // the UART signals away from the MiP and to the PC before actually performing the Serial write.
 MiPStream::MiPStream()
 {
