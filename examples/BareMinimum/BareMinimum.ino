@@ -15,7 +15,7 @@
 
 // This is example sketch shows the bare minimum needed to connect MiP to wifi.
 
-#include <mip.h>
+#include <mip_esp8266.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -43,7 +43,7 @@ void loop() {
 
   /////////////////////////////////////////////////////////////////////////////////////////
   
-  Debug.handle();                             // Without this we can't debug MiP using telnet.
+  defaultMessaging();                         // Without this we can't debug MiP using telnet.
 }
 
 void defaultInit() {
@@ -61,7 +61,13 @@ void defaultInit() {
 
   Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
 
-  connectResult = mip.begin();                // Last but not least, establish the connection between the
-                                              // D1 mini and MiP.
+  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
+}
+
+void defaultMessaging() {
+  DEBUG_D(mip.dumpDebug());                   // Debug-level messages dumped by the API.
+  DEBUG_I(mip.dumpInfo());                    // Informational messages dumped by the API.
+  DEBUG_E(mip.dumpErrors());                  // Error messages dumped by the API.
+  Debug.handle();                             // Handle sending messages via telnet.
 }
 

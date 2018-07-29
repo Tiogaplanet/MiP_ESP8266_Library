@@ -22,7 +22,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "queue.h"
-#include "RemoteDebug.h"
 
 // Integer error codes that can be encountered by MiP API functions.
 #define MIP_ERROR_NONE          0 // Success
@@ -549,6 +548,10 @@ public:
     int8_t rawReceive(const uint8_t request[], size_t requestLength,
                       uint8_t responseBuffer[], size_t responseBufferSize, size_t& responseLength);
 
+    const char* dumpDebug();
+    const char* dumpInfo();
+    const char* dumpErrors();
+
 protected:
     void    clear();
 
@@ -609,6 +612,8 @@ protected:
     void    processOobResponseData(uint8_t commandByte);
     uint8_t discardUnexpectedSerialData();
 
+    void    mipAssert(uint32_t lineNumber);
+    
     // Bits that can be set in m_flags bitfield.
     enum FlagBits
     {
@@ -636,6 +641,9 @@ protected:
     MiPDetectedMiP               m_detectedMiP;
     MiPIRCode                    m_receivedIRCode;
     uint8_t                      m_irId;
+    char                         m_debugString[128];
+    char                         m_infoString[128];
+    char                         m_errorString[128];
 
     static MiP*                  s_pInstance;
 };

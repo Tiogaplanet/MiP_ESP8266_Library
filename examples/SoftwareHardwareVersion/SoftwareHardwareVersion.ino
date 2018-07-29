@@ -17,7 +17,7 @@
     readHardwareInfo()
 */
 
-#include <mip.h>
+#include <mip_esp8266.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -64,7 +64,7 @@ void loop()
     lastChangeTime = now;
   }
 
-  Debug.handle();
+  defaultMessaging();
 }
 
 void defaultInit() {
@@ -83,5 +83,12 @@ void defaultInit() {
   Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
 
   connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
+}
+
+void defaultMessaging() {
+  DEBUG_D(mip.dumpDebug());
+  DEBUG_I(mip.dumpInfo());
+  DEBUG_E(mip.dumpErrors());
+  Debug.handle();
 }
 

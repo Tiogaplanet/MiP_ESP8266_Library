@@ -17,7 +17,7 @@
     getUserData()
 */
 
-#include <mip.h>
+#include <mip_esp8266.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -59,28 +59,31 @@ void loop() {
     lastChangeTime = now;
   }
 
-  Debug.handle();
+  defaultMessaging();
 }
 
 void defaultInit() {
-  // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    //delay(5000);
     ESP.restart();
   }
 
-  ArduinoOTA.setHostname(hostname);
+  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
 
   ArduinoOTA.begin();
 
-  // Start the debugging telnet server with hostname set.
-  Debug.begin(hostname);
+  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
 
-  // Allow a reset to the ESP8266 from the telnet client.
-  Debug.setResetCmdEnabled(true);
+  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
 
-  connectResult = mip.begin();
+  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
+}
+
+void defaultMessaging() {
+  DEBUG_D(mip.dumpDebug());
+  DEBUG_I(mip.dumpInfo());
+  DEBUG_E(mip.dumpErrors());
+  Debug.handle();
 }
 
