@@ -117,12 +117,17 @@ MiP* MiP::s_pInstance = NULL;
 
 
 
-// Define an assert mechanism that can be used to log when the user is found to be calling the API incorrectly.
+// Define an assert mechanism that can be used to log and halt when the user is found to be calling the API incorrectly.
 #define MIP_ASSERT(EXPRESSION) if (!(EXPRESSION)) mipAssert(__LINE__);
 
-void MiP::mipAssert(uint32_t lineNumber)
+static void mipAssert(uint32_t lineNumber)
 {
-    sprintf(m_errorString, "MiP Assert: mip.cpp: %d\n", lineNumber);
+    MiPStream.print(F("MiP Assert: mip.cpp:"));
+        MiPStream.println(lineNumber);
+
+    while (1)
+    {
+    }
 }
 
 
@@ -146,6 +151,7 @@ void MiP::clear()
     m_lastRequestTime = millis();
     m_lastContinuousDriveTime = millis();
     m_flags = 0;
+    m_serialToMiP = false;
     memset(m_responseBuffer, 0, sizeof(m_responseBuffer));
     m_expectedResponseCommand = 0;
     m_expectedResponseSize = 0;
@@ -163,13 +169,19 @@ void MiP::clear()
 
 bool MiP::begin()
 {
+    // Swap the pins used to select the UART destination between the MiP and PC.
+    Serial.swap();
+    m_serialToMiP = true;
+
     // The MiP requires the UART to communicate at 115200-N-8-1.
-    Serial.begin(115200);
+    // Call MiPStream.begin() instead of Serial.begin() directly so that it can track the begin/end state. This allows
+    // it to know that it should automatically initialize the Serial stream to 115200 if the user attempts to write to
+    // it before calling this MiP::begin method.
+    MiPStream.begin(115200);
     Serial.setTimeout(MIP_RESPONSE_TIMEOUT);
 
     // Initialize the class members.
     clear();
-
     // Roll the timers back so that the first calls can occur immediately.
     m_lastRequestTime = millis() - MIP_REQUEST_DELAY;
     m_lastContinuousDriveTime = millis() - MIP_CONTINUOUS_DRIVE_DELAY;
@@ -225,7 +237,9 @@ void MiP::end()
 
     clear();
 
-    Serial.end();
+    MiPStream.end();
+    Serial.swap();
+    m_serialToMiP = false;
 }
 
 void MiP::sleep()
@@ -242,23 +256,23 @@ void MiP::printLastCallResult()
 {
     if (m_lastError != MIP_ERROR_NONE)
     {
-        strcpy(m_infoString, "MiP: API returned ");
+        MiPStream.print(F("MiP: API returned "));
         switch (m_lastError)
         {
         case MIP_ERROR_TIMEOUT:
-            strcat(m_infoString, "MIP_ERROR_TIMEOUT (Timed out waiting for response)");
+            MiPStream.println(F("MIP_ERROR_TIMEOUT (Timed out waiting for response)"));
             break;
         case MIP_ERROR_NO_EVENT:
-            strcat(m_infoString, "MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)");
+            MiPStream.println(F("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)"));
             break;
         case MIP_ERROR_BAD_RESPONSE:
-            strcat(m_infoString, "MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)");
+            MiPStream.println(F("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)"));
             break;
         case MIP_ERROR_MAX_RETRIES:
-            strcat(m_infoString, "MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)");
+            MiPStream.println(F("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)"));
             break;
         default:
-            strcat(m_infoString, "unknown error");
+            MiPStream.println(F("unknown error"));
             break;
         }
     }
@@ -1302,7 +1316,6 @@ int8_t MiP::rawGetWeight(int8_t& weight)
 
     weight = 0.0f;
     result = rawReceive(getWeight, sizeof(getWeight), response, sizeof(response), responseLength);
-    sprintf(m_debugString, "Raw weight command: 0x%02X and result: 0x%02X\n", response[0], response[1]);
     if (result)
     {
         return result;
@@ -2197,24 +2210,12 @@ int8_t MiP::rawReceive(const uint8_t request[], size_t requestLength,
 
 
 
-const char* MiP::dumpDebug(){
-    return m_debugString;
-}
-
-const char* MiP::dumpErrors(){
-    return m_errorString;
-}
-
-const char* MiP::dumpInfo(){
-    return m_infoString;
-}
-
-
-
 void MiP::transportSendRequest(const uint8_t* pRequest, size_t requestLength, int expectResponse)
 {
     // Must call begin() and have it return 'true' before calling sending commands to the MiP.
     MIP_ASSERT( isInitialized() );
+
+    switchSerialToMiP();
 
     // Let the MiP process the last request before letting another request be issued.
     while (millis() - m_lastRequestTime < MIP_REQUEST_DELAY)
@@ -2254,6 +2255,7 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     // UNDONE: I think it would be my bug if the following assert ever fired.
     MIP_ASSERT( m_expectedResponseCommand != 0 );
 
+    switchSerialToMiP();
 
     // Process all received bytes (which might include out of band notifications) until we find the response to the
     // last request made. Will timeout after a second.
@@ -2267,7 +2269,7 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     if (!responseFound)
     {
         // Never received the expected response within the timeout window.
-        strcpy(m_infoString, "MiP: Response timeout.\n");
+        MiPStream.println(F("MiP: Response timeout"));
         return MIP_ERROR_TIMEOUT;
     }
 
@@ -2288,6 +2290,7 @@ bool MiP::processAllResponseData()
     size_t  bytesToRead;
     size_t  bytesRead;
 
+    switchSerialToMiP();
 
     while (Serial.available() >= 2)
     {
@@ -2318,7 +2321,10 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                sprintf(m_infoString, "MiP: Response too short: %d bytes read with %d expected.\n", bytesRead, bytesToRead * 2);
+                MiPStream.print(F("MiP: Response too short: "));
+                    MiPStream.print(bytesRead);
+                    MiPStream.print(',');
+                    MiPStream.println(bytesToRead * 2);
                 break;
             }
         }
@@ -2393,7 +2399,11 @@ void MiP::processOobResponseData(uint8_t commandByte)
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        sprintf(m_infoString, "MiP: Bad OOB command byte: %d (discarded %d bytes).\n", commandByte, discardedBytes);
+        MiPStream.print(F("MiP: Bad OOB command byte: "));
+            MiPStream.print(commandByte, HEX);
+            MiPStream.print(F(" (discarded "));
+            MiPStream.print(discardedBytes);
+            MiPStream.println(F(" bytes)"));
         return;
     }
 
@@ -2404,7 +2414,10 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        sprintf(m_infoString, "MiP: OOB too short: %d,%d.\n", bytesRead, length * 2);
+        MiPStream.print(F("MiP: OOB too short: "));
+            MiPStream.print(bytesRead);
+            MiPStream.print(',');
+            MiPStream.println(length * 2);
         return;
     }
 
@@ -2475,3 +2488,111 @@ uint8_t MiP::discardUnexpectedSerialData()
     }
     return discardedBytes;
 }
+
+
+
+// This class can be used instead of Serial for sending text to the PC. It makes sure that the MiP ProMini Pack switches
+// the UART signals away from the MiP and to the PC before actually performing the Serial write.
+MiPStream::MiPStream()
+{
+    m_isInit = false;
+}
+
+// Methods that must be implemented for Stream subclasses.
+int MiPStream::available()
+{
+    initIfNeeded();
+    return Serial.available();
+}
+
+int MiPStream::read()
+{
+    initIfNeeded();
+    return Serial.read();
+}
+
+int MiPStream::peek()
+{
+    initIfNeeded();
+    return Serial.peek();
+}
+
+// Methods that must be implemented for Print subclasses.
+size_t MiPStream::write(uint8_t byte)
+{
+    initIfNeeded();
+    bool needToRestore = MiP::isInstanceSerialGoingToMiP();
+    MiP::switchInstanceSerialToPC();
+    size_t result = Serial.write(byte);
+    if (needToRestore)
+    {
+        MiP::switchInstanceSerialToMiP();
+    }
+    return result;
+}
+
+size_t MiPStream::write(const uint8_t *pBuffer, size_t size)
+{
+    initIfNeeded();
+    bool needToRestore = MiP::isInstanceSerialGoingToMiP();
+    MiP::switchInstanceSerialToPC();
+    size_t result = Serial.write(pBuffer, size);
+    if (needToRestore)
+    {
+        MiP::switchInstanceSerialToMiP();
+    }
+    return result;
+}
+
+int MiPStream::availableForWrite()
+{
+    initIfNeeded();
+    return Serial.availableForWrite();
+}
+
+void MiPStream::flush()
+{
+    initIfNeeded();
+    return Serial.flush();
+}
+
+void MiPStream::begin(unsigned long baud, uint8_t mode)
+{
+    // Silence compiler warnings about unused parameters.
+    (void)baud;
+    (void)mode;
+
+    if (m_isInit)
+    {
+        // Ignore redundant begin() calls.
+        return;
+    }
+    m_isInit = true;
+
+    // Fix the baud rate / mode at 115200-8-N-1 since that is required by the MiP.
+    Serial.begin(115200, SERIAL_8N1);
+}
+
+void MiPStream::end()
+{
+    if (!m_isInit)
+    {
+        // Ignore end() if no begin() call has been made.
+        return;
+    }
+
+    Serial.end();
+    m_isInit = false;
+}
+
+void MiPStream::initIfNeeded()
+{
+    // Make sure that Serial stream has been initialized by user or MiP.
+    if (!m_isInit)
+    {
+        begin(115200);
+    }
+}
+
+// Instantiate the single instance of this stream.
+class MiPStream MiPStream;

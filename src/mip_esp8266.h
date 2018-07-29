@@ -548,9 +548,54 @@ public:
     int8_t rawReceive(const uint8_t request[], size_t requestLength,
                       uint8_t responseBuffer[], size_t responseBufferSize, size_t& responseLength);
 
-    const char* dumpDebug();
-    const char* dumpInfo();
-    const char* dumpErrors();
+    // Serial is shared between the MiP and the PC on the MiP ProMini Pack.
+    // You shouldn't need to use these functions directly as just calling Serial.print() or Serial.println() from your
+    // code will automatically end up calling these functions for you as needed.
+    void switchSerialToMiP()
+    {
+        if(!m_serialToMiP){
+            Serial.flush();
+            Serial.swap();
+            m_serialToMiP = true;
+        }
+    }
+    void switchSerialToPC()
+    {
+        if(m_serialToMiP) {
+            Serial.flush();
+            Serial.swap();
+            m_serialToMiP = false;
+        }
+    }
+    bool isSerialGoingToMiP()
+    {
+        return m_serialToMiP;
+    }
+    static void switchInstanceSerialToMiP()
+    {
+        if (s_pInstance)
+        {
+            s_pInstance->switchSerialToMiP();
+        }
+    }
+    static void switchInstanceSerialToPC()
+    {
+        if (s_pInstance)
+        {
+            s_pInstance->switchSerialToPC();
+        }
+    }
+    static bool isInstanceSerialGoingToMiP()
+    {
+        if (s_pInstance)
+        {
+            return s_pInstance->isSerialGoingToMiP();
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 protected:
     void    clear();
@@ -612,8 +657,6 @@ protected:
     void    processOobResponseData(uint8_t commandByte);
     uint8_t discardUnexpectedSerialData();
 
-    void    mipAssert(uint32_t lineNumber);
-    
     // Bits that can be set in m_flags bitfield.
     enum FlagBits
     {
@@ -626,6 +669,7 @@ protected:
     uint32_t                     m_lastRequestTime;
     uint32_t                     m_lastContinuousDriveTime;
     uint8_t                      m_flags;
+    bool                         m_serialToMiP;
     uint8_t                      m_responseBuffer[MIP_RESPONSE_MAX_LEN];
     uint8_t                      m_expectedResponseCommand;
     uint8_t                      m_expectedResponseSize;
@@ -641,9 +685,6 @@ protected:
     MiPDetectedMiP               m_detectedMiP;
     MiPIRCode                    m_receivedIRCode;
     uint8_t                      m_irId;
-    char                         m_debugString[128];
-    char                         m_infoString[128];
-    char                         m_errorString[128];
 
     static MiP*                  s_pInstance;
 };
