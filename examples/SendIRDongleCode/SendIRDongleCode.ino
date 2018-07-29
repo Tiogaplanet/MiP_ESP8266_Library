@@ -23,9 +23,8 @@
 #include <ArduinoOTA.h>
 #include <RemoteDebug.h>
 
-// Replace the dots with your access point ssid and password.
-const char* ssid = ".............";
-const char* password = ".............";
+const char* ssid = "........";
+const char* password = "........";
 const char* hostname = "MiP-0x01";
 
 MiP         mip;
@@ -42,29 +41,11 @@ RemoteDebug Debug;
 bool connectResult;
 
 // Try different codes for dongleCode[]. For valid codes visit
-// https://github.com/adamgreen/MiP_ProMini-Pack/blob/master/Arduino/MiP_ProMini_Pack_Library/README.md
+// https://github.com/Tiogaplanet/MiP_ESP8266_Library/wiki/Infrared#sendirdonglecode
 uint8_t dongleCode[4] = { 0xBB, 0x0AB, 0xFF, 0xFF };
 
 void setup() {
-  // Bring up WiFi first.  It will give MiP a chance to be ready.
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    delay(5000);
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);
-
-  ArduinoOTA.begin();
-
-  // Start the debugging telnet server with hostname set.
-  Debug.begin(hostname);
-
-  // Allow a reset to the ESP8266 from the telnet client.
-  Debug.setResetCmdEnabled(true);
-
-  connectResult = mip.begin();
+  defaultInit();
 }
 
 void loop() {
@@ -82,3 +63,26 @@ void loop() {
 
   Debug.handle();
 }
+
+void defaultInit() {
+  // Bring up wifi first.  It will give MiP a chance to be ready.
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    //delay(5000);
+    ESP.restart();
+  }
+
+  ArduinoOTA.setHostname(hostname);
+
+  ArduinoOTA.begin();
+
+  // Start the debugging telnet server with hostname set.
+  Debug.begin(hostname);
+
+  // Allow a reset to the ESP8266 from the telnet client.
+  Debug.setResetCmdEnabled(true);
+
+  connectResult = mip.begin();
+}
+
