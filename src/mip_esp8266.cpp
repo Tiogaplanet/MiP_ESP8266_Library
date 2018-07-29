@@ -13,7 +13,7 @@
    limitations under the License.
 */
 /* Implementation of MiP C API. */
-#include "mip.h"
+#include "mip_esp8266.h"
 
 
 // Make sure that the MiP module itself always uses the actual Serial object and not the redirection to MiPStream.
@@ -117,24 +117,18 @@ MiP* MiP::s_pInstance = NULL;
 
 
 
-// Define an assert mechanism that can be used to log and halt when the user is found to be calling the API incorrectly.
+// Define an assert mechanism that can be used to log when the user is found to be calling the API incorrectly.
 #define MIP_ASSERT(EXPRESSION) if (!(EXPRESSION)) mipAssert(__LINE__);
 
-static void mipAssert(uint32_t lineNumber)
+void MiP::mipAssert(uint32_t lineNumber)
 {
-    DEBUG_E("MiP Assert: mip.cpp: %d\n", lineNumber);
-
-    while (1)
-    {
-    }
+    sprintf(m_errorString, "MiP Assert: mip.cpp: %d\n", lineNumber);
 }
 
 
 
 MiP::MiP()
 {
-    m_serialSelectPin = serialSelectPin;
-
     clear();
 
     // Track this instance in class specific global so that MiPStream can find it.
@@ -248,23 +242,23 @@ void MiP::printLastCallResult()
 {
     if (m_lastError != MIP_ERROR_NONE)
     {
-        DEBUG_E("MiP: API returned ");
+        strcpy(m_infoString, "MiP: API returned ");
         switch (m_lastError)
         {
         case MIP_ERROR_TIMEOUT:
-            DEBUG_E("MIP_ERROR_TIMEOUT (Timed out waiting for response)");
+            strcat(m_infoString, "MIP_ERROR_TIMEOUT (Timed out waiting for response)");
             break;
         case MIP_ERROR_NO_EVENT:
-            DEBUG_E("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)");
+            strcat(m_infoString, "MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)");
             break;
         case MIP_ERROR_BAD_RESPONSE:
-            DEBUG_E("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)");
+            strcat(m_infoString, "MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)");
             break;
         case MIP_ERROR_MAX_RETRIES:
-            DEBUG_E("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)");
+            strcat(m_infoString, "MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)");
             break;
         default:
-            DEBUG_E("unknown error");
+            strcat(m_infoString, "unknown error");
             break;
         }
     }
@@ -1308,6 +1302,7 @@ int8_t MiP::rawGetWeight(int8_t& weight)
 
     weight = 0.0f;
     result = rawReceive(getWeight, sizeof(getWeight), response, sizeof(response), responseLength);
+    sprintf(m_debugString, "Raw weight command: 0x%02X and result: 0x%02X\n", response[0], response[1]);
     if (result)
     {
         return result;
@@ -2202,6 +2197,20 @@ int8_t MiP::rawReceive(const uint8_t request[], size_t requestLength,
 
 
 
+const char* MiP::dumpDebug(){
+    return m_debugString;
+}
+
+const char* MiP::dumpErrors(){
+    return m_errorString;
+}
+
+const char* MiP::dumpInfo(){
+    return m_infoString;
+}
+
+
+
 void MiP::transportSendRequest(const uint8_t* pRequest, size_t requestLength, int expectResponse)
 {
     // Must call begin() and have it return 'true' before calling sending commands to the MiP.
@@ -2258,7 +2267,7 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     if (!responseFound)
     {
         // Never received the expected response within the timeout window.
-        DEBUG_E("MiP: Response timeout");
+        strcpy(m_infoString, "MiP: Response timeout.\n");
         return MIP_ERROR_TIMEOUT;
     }
 
@@ -2309,10 +2318,7 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                DEBUG_E("MiP: Response too short: ");
-                    DEBUG_E(bytesRead);
-                    DEBUG_E(',');
-                    DEBUG_E(bytesToRead * 2);
+                sprintf(m_infoString, "MiP: Response too short: %d bytes read with %d expected.\n", bytesRead, bytesToRead * 2);
                 break;
             }
         }
@@ -2387,11 +2393,7 @@ void MiP::processOobResponseData(uint8_t commandByte)
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        DEBUG_E("MiP: Bad OOB command byte: ");
-            DEBUG_E(commandByte);
-            DEBUG_E(" (discarded ");
-            DEBUG_E(discardedBytes);
-            DEBUG_E(" bytes)");
+        sprintf(m_infoString, "MiP: Bad OOB command byte: %d (discarded %d bytes).\n", commandByte, discardedBytes);
         return;
     }
 
@@ -2402,10 +2404,7 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        DEBUG_E("MiP: OOB too short: ");
-            DEBUG_E(bytesRead);
-            DEBUG_E(',');
-            DEBUG_E(length * 2);
+        sprintf(m_infoString, "MiP: OOB too short: %d,%d.\n", bytesRead, length * 2);
         return;
     }
 
