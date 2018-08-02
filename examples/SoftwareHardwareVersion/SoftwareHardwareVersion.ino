@@ -16,79 +16,42 @@
     readSoftwareVersion()
     readHardwareInfo()
 */
+#include <mip.h>
 
-#include <mip_esp8266.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <RemoteDebug.h>
+MiP     mip;
 
-const char* ssid = "..............";          // Enter the SSID for your wifi network.
-const char* password = "..............";      // Enter your wifi password.
-const char* hostname = "MiP-0x01";            // Set any hostname you desire.
-
-MiP         mip;                              // We need a single MiP object
-RemoteDebug Debug;                            // and a single Debug object.
-bool        connectResult;                    // Test whether a connection to MiP was established.
-
-bool singleRun = true;                        // This example will run once.
-const int wait = 5000;                        // Wait five seconds before sending program output.
-long lastChangeTime = 0;
-
-void setup()
-{
-  defaultInit();
-}
-
-void loop()
-{
-  ArduinoOTA.handle();
-
-  long now = millis();
-
-  if (now > lastChangeTime + wait) {
-    if (singleRun) {
-      MiPSoftwareVersion softwareVersion;
-      mip.readSoftwareVersion(softwareVersion);
-      DEBUG_I("software version: %d-%d-%d.%d\n", softwareVersion.year, softwareVersion.month, softwareVersion.day, softwareVersion.uniqueVersion);
-
-      MiPHardwareInfo hardwareInfo;
-      mip.readHardwareInfo(hardwareInfo);
-      DEBUG_I("hardware info\n");
-      DEBUG_I("  voice chip version: %d\n", hardwareInfo.voiceChip);
-      DEBUG_I("  hardware version: %d\n", hardwareInfo.hardware);
-
-      singleRun = false;
-    }
-    lastChangeTime = now;
+void setup() {
+  bool connectResult = mip.begin();
+  if (!connectResult) {
+    Serial.println(F("Failed connecting to MiP!"));
+    return;
   }
 
-  defaultMessaging();
+  Serial.println(F("SoftwareHardwareVersion.ino - Use readSoftwareVersion() & readHardwareInfo() functions."));
+
+  MiPSoftwareVersion softwareVersion;
+  mip.readSoftwareVersion(softwareVersion);
+  Serial.print(F("software version: "));
+  Serial.print(softwareVersion.year);
+    Serial.print('-');
+    Serial.print(softwareVersion.month);
+    Serial.print('-');
+    Serial.print(softwareVersion.day);
+    Serial.print('.');
+    Serial.println(softwareVersion.uniqueVersion);
+
+  MiPHardwareInfo hardwareInfo;
+  mip.readHardwareInfo(hardwareInfo);
+  Serial.println(F("hardware info"));
+  Serial.print(F("  voice chip version: "));
+    Serial.println(hardwareInfo.voiceChip);
+  Serial.print(F("  hardware version: "));
+    Serial.println(hardwareInfo.hardware);
+
+  Serial.println();
+  Serial.println(F("Sample done."));
 }
 
-void defaultInit() {
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
-
-  ArduinoOTA.begin();
-
-  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
-
-  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-}
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());
-  DEBUG_I(mip.dumpInfo());
-  DEBUG_E(mip.dumpErrors());
-  Debug.handle();
+void loop() {
 }
 
