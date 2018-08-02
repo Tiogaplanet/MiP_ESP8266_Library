@@ -16,74 +16,31 @@
     setUserData()
     getUserData()
 */
+#include <mip.h>
 
-#include <mip_esp8266.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <RemoteDebug.h>
-
-const char* ssid = "........";
-const char* password = "........";
-const char* hostname = "MiP-0x01";
-
-MiP         mip;
-RemoteDebug Debug;
-bool        connectResult;
-
+MiP     mip;
 uint8_t eepromContents;
-
-bool singleRun = true; // This example will run once.
-const int wait = 5000; // Wait five seconds before sending program output.
-long lastChangeTime = 0;
+char    outputString;
 
 void setup() {
-  defaultInit();
+  // First need to initialize the serial connection with the MiP.
+  bool connectResult = mip.begin();
+  if (!connectResult) {
+    Serial.println(F("Failed connecting to MiP!"));
+    return;
+  }
+
+  Serial.println(F("ZeroEeprom.ino - Writes zeros to each byte in EEPROM."));
+
+  // Variable i is the EEPROM address offset where we will start writing zeroes.
+  for (uint8_t i = 0x00; i <= 0x0F; i++) {
+    mip.setUserData(i, 0x00);
+    delay(1000);
+
+    Serial.print("0x2"); Serial.print(i, HEX); Serial.print(": "); Serial.print("0x0"); Serial.println(mip.getUserData(i), HEX);
+  }
 }
 
 void loop() {
-  ArduinoOTA.handle();
-
-  long now = millis();
-
-  if (now > lastChangeTime + wait) {
-    if (singleRun) {
-      for (uint8_t i = 0x00; i <= 0x0F; i++) { // Variable i is the EEPROM address offset where we will start writing zeroes.
-        mip.setUserData(i, 0x00);
-        delay(500);
-        DEBUG_I("0x2%X: 0x%02X\n", i, mip.getUserData(i));
-      }
-      singleRun = false;
-    }
-    lastChangeTime = now;
-  }
-
-  defaultMessaging();
-}
-
-void defaultInit() {
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
-
-  ArduinoOTA.begin();
-
-  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
-
-  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-}
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());
-  DEBUG_I(mip.dumpInfo());
-  DEBUG_E(mip.dumpErrors());
-  Debug.handle();
 }
 

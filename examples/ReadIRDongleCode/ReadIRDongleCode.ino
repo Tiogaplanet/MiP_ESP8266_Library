@@ -14,13 +14,11 @@
 */
 /* Example used in following API documentation:
     readIRDongleCode()
+    availableIRCodeEvents()
 */
-
 #include <mip.h>
 
 MiP       mip;
-uint8_t   dongleCode[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-MiPIRCode receiveCode;
 bool      connectResult;
 
 void setup() {
@@ -35,18 +33,19 @@ void setup() {
 }
 
 void loop() {
-  mip.readIRDongleCode(receiveCode);
+  uint32_t receiveCode;
 
-  if (receiveCode.dataNumbers) {
-    Serial.print(F("Receiving ")); Serial.print(receiveCode.dataNumbers); Serial.println(F(" data numbers."));
-    for (int i = 0; i < receiveCode.dataNumbers ; i++)
-    {
-      Serial.print(receiveCode.code[i], HEX); Serial.print(F(" "));
-    }
+  if (mip.availableIRCodeEvents()) {
+    receiveCode = mip.readIRDongleCode();
+
+    Serial.print(F("Received "));
+    Serial.print(((receiveCode >> 28) & 0xFF), HEX);
+    Serial.print(F(" "));
+    Serial.print(((receiveCode >> 16) & 0xFF), HEX);
+    Serial.print(F(" "));
+    Serial.print(((receiveCode >> 8) & 0xFF), HEX);
+    Serial.print(F(" "));
+    Serial.print((receiveCode & 0xFF), HEX);
     Serial.println();
   }
-
-  receiveCode.clear();
-
-  delay(500);
 }

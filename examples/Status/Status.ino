@@ -23,29 +23,21 @@
     isFaceDownOnTray();
     isOnBackWithKickstand();
 */
+#include <mip.h>
 
-#include <mip_esp8266.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <RemoteDebug.h>
-
-const char* ssid = "........";                // Enter the SSID for your wifi network.
-const char* password = "........";            // Enter your wifi password.
-const char* hostname = "MiP-0x01";            // Set any hostname you desire.
-
-MiP         mip;                              // We need a single MiP object
-RemoteDebug Debug;                            // and a single Debug object.
-bool        connectResult;                    // Test whether a connection to MiP was established.
+MiP     mip;
 
 void setup() {
-  defaultInit();
+  bool connectResult = mip.begin();
+  if (!connectResult) {
+    Serial.println(F("Failed connecting to MiP!"));
+    return;
+  }
+
+  Serial.println(F("Status.ino - Display MiP status as it changes."));
 }
 
 void loop() {
-  ArduinoOTA.handle();
-
   static float       lastBatteryLevel = 0.0f;
   static MiPPosition lastPosition = (MiPPosition) - 1;
 
@@ -53,61 +45,36 @@ void loop() {
   MiPPosition        currentPosition = mip.readPosition();
 
   if (currentBatteryLevel != lastBatteryLevel) {
-    DEBUG_I("Battery: %fV\n", currentBatteryLevel);
+    Serial.print(F("Battery: "));
+      Serial.print(currentBatteryLevel);
+      Serial.println(F("V"));
     lastBatteryLevel = currentBatteryLevel;
   }
 
   if (currentPosition != lastPosition) {
     if (mip.isOnBack()) {
-      DEBUG_I("Position: On Back\n");
+      Serial.println(F("Position: On Back"));
     }
     if (mip.isFaceDown()) {
-      DEBUG_I("Position: Face Down\n");
+      Serial.println(F("Position: Face Down"));
     }
     if (mip.isUpright()) {
-      DEBUG_I("Position: Upright\n");
+      Serial.println(F("Position: Upright"));
     }
     if (mip.isPickedUp()) {
-      DEBUG_I("Position: Picked Up\n");
+      Serial.println(F("Position: Picked Up"));
     }
     if (mip.isHandStanding()) {
-      DEBUG_I("Position: Hand Stand\n");
+      Serial.println(F("Position: Hand Stand"));
     }
     if (mip.isFaceDownOnTray()) {
-      DEBUG_I("Position: Face Down on Tray\n");
+      Serial.println(F("Position: Face Down on Tray"));
     }
     if (mip.isOnBackWithKickstand()) {
-      DEBUG_I("Position: On Back With Kickstand\n");
+      Serial.println(F("Position: On Back With Kickstand"));
     }
 
     lastPosition = currentPosition;
   }
-
-  defaultMessaging();
-}
-
-void defaultInit() {
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
-
-  ArduinoOTA.begin();
-
-  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
-
-  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-}
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());
-  DEBUG_I(mip.dumpInfo());
-  DEBUG_E(mip.dumpErrors());
-  Debug.handle();
 }
 

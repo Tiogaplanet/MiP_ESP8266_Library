@@ -16,21 +16,9 @@
     setUserData()
     getUserData()
 */
+#include <mip.h>
 
-#include <mip_esp8266.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <RemoteDebug.h>
-
-const char* ssid = "........";
-const char* password = "........";
-const char* hostname = "MiP-0x01";
-
-MiP         mip;
-RemoteDebug Debug;
-bool        connectResult;
+MiP           mip;
 
 // Use an offset between 0x00 and 0x0F.
 const uint8_t eepromAddressOffset = 0x00;
@@ -39,63 +27,32 @@ const uint8_t eepromAddressOffset = 0x00;
 // recovered from EEPROM.
 uint8_t       secretPassword = 0x0D;
 
-bool singleRun = true; // This example will run once.
-const int wait = 5000; // Wait five seconds before sending program output.
-long lastChangeTime = 0;
-
 void setup() {
-  defaultInit();
+  // First need to initialize the serial connection with the MiP.
+  bool connectResult = mip.begin();
+  if (!connectResult) {
+    Serial.println(F("Failed connecting to MiP!"));
+    return;
+  }
+
+  Serial.println(F("ReadWriteEeprom.ino - Writes data to EEPROM and reads it back."));
+
+  Serial.print(F("Original password: "));
+  Serial.println(secretPassword, HEX);
+
+  // Power-off the MiP, comment out this line, recompile and load to the ProMini-Pack to see EEPROM
+  // data preserved across power cycles.
+  mip.setUserData(eepromAddressOffset, secretPassword);
+
+  // "Scramble" the secret password.
+  secretPassword = 0xFF;
+  Serial.print(F("Scrambled password: "));
+  Serial.println(secretPassword, HEX);
+
+  Serial.print(F("Recovered password: "));
+  Serial.print(mip.getUserData(eepromAddressOffset), HEX);
 }
 
 void loop() {
-  ArduinoOTA.handle();
-
-  long now = millis();
-
-  if (now > lastChangeTime + wait) {
-    if (singleRun) {
-      DEBUG_I("Original password: 0x%02X\n", secretPassword);
-
-      // Power-off the MiP, comment out this line, recompile and load to the ProMini-Pack to see EEPROM
-      // data preserved across power cycles.
-      mip.setUserData(eepromAddressOffset, secretPassword);
-
-      // "Scramble" the secret password.
-      secretPassword = 0xFF;
-      DEBUG_I("Scrambled password: 0x%02X\n", secretPassword);
-
-      DEBUG_I("Recovered password: 0x%02X\n", mip.getUserData(eepromAddressOffset));
-
-      singleRun = false;
-    }
-    lastChangeTime = now;
-  }
-
-  defaultMessaging();
-}
-
-void defaultInit() {
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
-
-  ArduinoOTA.begin();
-
-  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
-
-  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-}
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());
-  DEBUG_I(mip.dumpInfo());
-  DEBUG_E(mip.dumpErrors());
-  Debug.handle();
 }
 

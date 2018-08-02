@@ -15,77 +15,40 @@
 /* Example used in following API documentation:
     sendIRDongleCode()
 */
-
-#include <mip_esp8266.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <RemoteDebug.h>
-
-const char* ssid = "........";
-const char* password = "........";
-const char* hostname = "MiP-0x01";
-
-MiP         mip;
-RemoteDebug Debug;
-
-// Try different values for VALID_DATA_BYTES (2, 3 or 4)
-#define VALID_DATA_BYTES 4
+#include <mip.h>
 
 // Try different values for transmission power (0x01 - 0x78)
 #define MIP_IR_TX_POWER  0x78
 
-#define MAX_DATA_BYTES 4
-
+MiP  mip;
 bool connectResult;
 
-// Try different codes for dongleCode[]. For valid codes visit
-// https://github.com/Tiogaplanet/MiP_ESP8266_Library/wiki/Infrared#sendirdonglecode
-uint8_t dongleCode[4] = { 0xBB, 0x0AB, 0xFF, 0xFF };
-
 void setup() {
-  defaultInit();
+  connectResult = mip.begin();
+  if (!connectResult)
+  {
+    Serial.println(F("Failed connecting to MiP!"));
+    return;
+  }
+
+  Serial.println(F("SendIRDongleCode.ino - Send code to another MiP using IR."));
 }
 
 void loop() {
-  ArduinoOTA.handle();
+  uint16_t dongleCode;
 
-  DEBUG_I("Sending ");
-  for (int i = MAX_DATA_BYTES - VALID_DATA_BYTES; i < MAX_DATA_BYTES; i++) {
-    DEBUG_I("0x%02X ", dongleCode[i]);
-  }
-  DEBUG_I("\n");
+  char formattedOutput[14];
+  
+  // Try different codes for dongleCode.
+  dongleCode = 0x45;
+  dongleCode <<= 8;
+  dongleCode |= 0x67;
 
-  mip.sendIRDongleCode(dongleCode, VALID_DATA_BYTES, MIP_IR_TX_POWER);
+  sprintf(formattedOutput, "Sending 0x%04X", dongleCode);
+
+  Serial.println(formattedOutput);
+
+  mip.sendIRDongleCode(dongleCode, MIP_IR_TX_POWER);
 
   delay(1000);
-
-  defaultMessaging();
 }
-
-void defaultInit() {
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
-  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(hostname);           // Pass the hostname to the OTA support.
-
-  ArduinoOTA.begin();
-
-  Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
-
-  Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-}
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());
-  DEBUG_I(mip.dumpInfo());
-  DEBUG_E(mip.dumpErrors());
-  Debug.handle();
-}
-
