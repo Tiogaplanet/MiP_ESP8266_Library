@@ -12,9 +12,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-
-// This is example sketch shows the bare minimum needed to connect MiP to wifi.
-
+// This example sketch shows the bare minimum needed to connect MiP to wifi.
+// This sketch may be used as a starting point for your sketch.
 #include <mip_esp8266.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -43,7 +42,7 @@ void loop() {
 
   /////////////////////////////////////////////////////////////////////////////////////////
   
-  defaultMessaging();                         // Without this we can't debug MiP using telnet.
+  Debug.handle();                             // Without this we can't debug MiP using telnet.
 }
 
 void defaultInit() {
@@ -63,11 +62,3 @@ void defaultInit() {
 
   connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
 }
-
-void defaultMessaging() {
-  DEBUG_D(mip.dumpDebug());                   // Debug-level messages dumped by the API.
-  DEBUG_I(mip.dumpInfo());                    // Informational messages dumped by the API.
-  DEBUG_E(mip.dumpErrors());                  // Error messages dumped by the API.
-  Debug.handle();                             // Handle sending messages via telnet.
-}
-
