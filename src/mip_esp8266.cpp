@@ -151,7 +151,6 @@ void MiP::clear()
     m_lastRequestTime = millis();
     m_lastContinuousDriveTime = millis();
     m_flags = 0;
-    m_serialToMiP = false;
     memset(m_responseBuffer, 0, sizeof(m_responseBuffer));
     m_expectedResponseCommand = 0;
     m_expectedResponseSize = 0;
@@ -170,8 +169,11 @@ void MiP::clear()
 bool MiP::begin()
 {
     // Swap the pins used to select the UART destination between the MiP and PC.
-    Serial.swap();
-    m_serialToMiP = true;
+    if(m_serialToMiP = false)
+    {
+        Serial.swap();
+        m_serialToMiP = true;
+    }
 
     // The MiP requires the UART to communicate at 115200-N-8-1.
     // Call MiPStream.begin() instead of Serial.begin() directly so that it can track the begin/end state. This allows
@@ -238,8 +240,10 @@ void MiP::end()
     clear();
 
     MiPStream.end();
-    Serial.swap();
-    m_serialToMiP = false;
+    if(m_serialToMiP = true){
+        Serial.swap();
+        m_serialToMiP = false;   
+    }
 }
 
 void MiP::sleep()
