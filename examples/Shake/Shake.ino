@@ -15,23 +15,23 @@
 /* Example used in following API documentation:
     hasBeenShaken()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Shake.ino - Detect shakes."));
+  Serial1.println(F("Shake.ino - Detect shakes."));
 }
 
 void loop() {
   if (mip.hasBeenShaken()) {
-    Serial.println(F("Shake detected!"));
+    Serial1.println(F("Shake detected!"));
   }
 }
 

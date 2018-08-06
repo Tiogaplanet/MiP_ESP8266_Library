@@ -16,28 +16,28 @@
     writeVolume()
     readVolume()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Volume.ino - Use read/writeVolume(). Set volume level to 1 and read out afterwards."));
+  Serial1.println(F("Volume.ino - Use read/writeVolume(). Set volume level to 1 and read out afterwards."));
 
   mip.writeVolume(1);
 
   uint8_t volume = mip.readVolume();
 
-  Serial.print(F("Volume = "));
-    Serial.println(volume);
+  Serial1.print(F("Volume = "));
+    Serial1.println(volume);
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {

@@ -15,18 +15,18 @@
 /* Example used in following API documentation:
     readWeight()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Weight.ino - Use weight update functions."));
+  Serial1.println(F("Weight.ino - Use weight update functions."));
 }
 
 void loop() {
@@ -34,8 +34,8 @@ void loop() {
   int8_t currentWeight = mip.readWeight();
 
   if (currentWeight != lastWeight) {
-    Serial.print(F("Weight = "));
-      Serial.println(currentWeight);
+    Serial1.print(F("Weight = "));
+      Serial1.println(currentWeight);
     lastWeight = currentWeight;
   }
 }

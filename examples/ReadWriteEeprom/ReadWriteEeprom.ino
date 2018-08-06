@@ -16,7 +16,7 @@
     setUserData()
     getUserData()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP           mip;
 
@@ -28,17 +28,16 @@ const uint8_t eepromAddressOffset = 0x00;
 uint8_t       secretPassword = 0x0D;
 
 void setup() {
-  // First need to initialize the serial connection with the MiP.
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("ReadWriteEeprom.ino - Writes data to EEPROM and reads it back."));
+  Serial1.println(F("ReadWriteEeprom.ino - Writes data to EEPROM and reads it back."));
 
-  Serial.print(F("Original password: "));
-  Serial.println(secretPassword, HEX);
+  Serial1.print(F("Original password: "));
+  Serial1.println(secretPassword, HEX);
 
   // Power-off the MiP, comment out this line, recompile and load to the ProMini-Pack to see EEPROM
   // data preserved across power cycles.
@@ -46,11 +45,11 @@ void setup() {
 
   // "Scramble" the secret password.
   secretPassword = 0xFF;
-  Serial.print(F("Scrambled password: "));
-  Serial.println(secretPassword, HEX);
+  Serial1.print(F("Scrambled password: "));
+  Serial1.println(secretPassword, HEX);
 
-  Serial.print(F("Recovered password: "));
-  Serial.print(mip.getUserData(eepromAddressOffset), HEX);
+  Serial1.print(F("Recovered password: "));
+  Serial1.print(mip.getUserData(eepromAddressOffset), HEX);
 }
 
 void loop() {

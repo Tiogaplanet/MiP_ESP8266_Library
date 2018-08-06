@@ -15,18 +15,18 @@
 /* Example used in following API documentation:
     distanceDrive()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("DistanceDrive.ino - Use distanceDrive function. Drive forward, turn 360 degrees in each direction and backward."));
+  Serial1.println(F("DistanceDrive.ino - Use distanceDrive function. Drive forward, turn 360 degrees in each direction and backward."));
 
   // Queue up multiple commands to run in sequence.
   mip.distanceDrive(MIP_DRIVE_FORWARD, 30, MIP_TURN_RIGHT, 0);
@@ -34,8 +34,8 @@ void setup() {
   mip.distanceDrive(MIP_DRIVE_FORWARD, 0, MIP_TURN_RIGHT, 360);
   mip.distanceDrive(MIP_DRIVE_BACKWARD, 30, MIP_TURN_RIGHT, 0);
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {

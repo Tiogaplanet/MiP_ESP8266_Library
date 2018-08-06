@@ -389,7 +389,7 @@ public:
     void end();
     void sleep();
 
-    // Will return false if begin() wasn't successful in connecting to the MiP.
+    // Will return false if begin() wasn't successful in connecting to MiP.
     bool isInitialized()
     {
         return (m_flags & MRI_FLAG_INITIALIZED);
@@ -397,7 +397,7 @@ public:
 
     // When calling the public functions listed below, the MiP library will try its best to handle any errors
     // encountered by retrying the read/write operations behind the scenes. If the worst happens and it just can't
-    // recover from a communication issue with the MiP, it will provide details about the cause of the problem through
+    // recover from a communication issue with MiP, it will provide details about the cause of the problem through
     // the following functions.
     int8_t lastCallResult()
     {
@@ -509,55 +509,6 @@ public:
     int8_t rawReceive(const uint8_t request[], size_t requestLength,
                       uint8_t responseBuffer[], size_t responseBufferSize, size_t& responseLength);
 
-    // Serial is shared between the MiP and the PC on the D1 mini.
-    // You shouldn't need to use these functions directly as just calling Serial.print() or Serial.println() from your
-    // code will automatically end up calling these functions for you as needed.
-    void switchSerialToMiP()
-    {
-        if(!m_serialToMiP){
-            Serial.flush();
-            Serial.swap();
-            m_serialToMiP = true;
-        }
-    }
-    void switchSerialToPC()
-    {
-        if(m_serialToMiP) {
-            Serial.flush();
-            Serial.swap();
-            m_serialToMiP = false;
-        }
-    }
-    bool isSerialGoingToMiP()
-    {
-        return m_serialToMiP;
-    }
-    static void switchInstanceSerialToMiP()
-    {
-        if (s_pInstance)
-        {
-            s_pInstance->switchSerialToMiP();
-        }
-    }
-    static void switchInstanceSerialToPC()
-    {
-        if (s_pInstance)
-        {
-            s_pInstance->switchSerialToPC();
-        }
-    }
-    static bool isInstanceSerialGoingToMiP()
-    {
-        if (s_pInstance)
-        {
-            return s_pInstance->isSerialGoingToMiP();
-        }
-        else
-        {
-            return false;
-        }
-    }
-
 protected:
     void    clear();
 
@@ -645,49 +596,6 @@ protected:
     CircularQueue<uint32_t, 8>   m_irCodeEvents;
     CircularQueue<uint8_t, 8>    m_detectedMiPEvents;
     uint8_t                      m_irId;
-
-    static MiP*                  s_pInstance;
 };
-
-
-
-// This class can be used instead of Serial for sending text to the PC. It makes sure that the D1 mini switches
-// the UART signals away from the MiP and to the PC before actually performing the Serial write.
-class MiPStream : public Stream
-{
-public:
-    MiPStream();
-
-    // Methods that must be implemented for Stream subclasses.
-    virtual int available();
-    virtual int read();
-    virtual int peek();
-
-    // Methods that must be implemented for Print subclasses.
-    virtual size_t write(uint8_t);
-    virtual size_t write(const uint8_t *buffer, size_t size);
-    virtual int    availableForWrite();
-    virtual void   flush();
-
-    // Additional methods defined by HardwareSerial that user might call.
-    void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
-    void begin(unsigned long, uint8_t);
-    void end();
-    inline size_t write(unsigned long n) { return write((uint8_t)n); }
-    inline size_t write(long n) { return write((uint8_t)n); }
-    inline size_t write(unsigned int n) { return write((uint8_t)n); }
-    inline size_t write(int n) { return write((uint8_t)n); }
-    operator bool() { return true; }
-
-protected:
-    void initIfNeeded();
-
-    bool m_isInit;
-} extern MiPStream;
-
-// This macro will force user code which does something like: Serial.println("Interesting text")
-// to be redirected to MiPStream which will make sure that it actually gets sent to the PC and not the MiP.
-#define Serial MiPStream
-
 
 #endif // MIP_H_

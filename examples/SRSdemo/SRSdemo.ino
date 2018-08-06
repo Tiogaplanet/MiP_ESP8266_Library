@@ -13,7 +13,7 @@
    limitations under the License.
 */
 // Program that I demoed at the Seattle Robotics Society meeting on April 21, 2018.
-#include <mip.h>
+#include <mip_esp8266.h>
 
 static MiP         g_mip;
 static MiPHeadLEDs g_headLEDs;
@@ -21,15 +21,15 @@ static MiPHeadLEDs g_headLEDs;
 
 void setup()
 {
-    // First need to initialize the serial connection with the MiP.
+    // First need to initialize the Serial1 connection with the MiP.
     bool connectResult = g_mip.begin();
     if (!connectResult)
     {
-        Serial.println(F("Failed connecting to MiP!"));
+        Serial1.println(F("Failed connecting to MiP!"));
         return;
     }
 
-    Serial.println(F("Seattle Robotics Society Demo for April 21st, 2018."));
+    Serial1.println(F("Seattle Robotics Society Demo for April 21st, 2018."));
 }
 
 void loop()

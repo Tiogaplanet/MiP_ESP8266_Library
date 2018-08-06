@@ -16,59 +16,59 @@
     writeHeadLEDs()
     readHeadLEDs()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("HeadLEDs.ino - Use head LED functions. Should set each head LED to different state."));
+  Serial1.println(F("HeadLEDs.ino - Use head LED functions. Should set each head LED to different state."));
   mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_ON, MIP_HEAD_LED_BLINK_SLOW, MIP_HEAD_LED_BLINK_FAST);
 
   MiPHeadLEDs headLEDs;
   mip.readHeadLEDs(headLEDs);
-  Serial.println(F("Head LEDs"));
-  Serial.print(F("    led1: "));
+  Serial1.println(F("Head LEDs"));
+  Serial1.print(F("    led1: "));
     printLEDString(headLEDs.led1);
-  Serial.print(F("    led2: "));
+  Serial1.print(F("    led2: "));
     printLEDString(headLEDs.led2);
-  Serial.print(F("    led3: "));
+  Serial1.print(F("    led3: "));
     printLEDString(headLEDs.led3);
-  Serial.print(F("    led4: "));
+  Serial1.print(F("    led4: "));
     printLEDString(headLEDs.led4);
 
   delay(4000);
 
   // Turn all the LEDs back on now.
-  Serial.println(F("Turning all eye LEDs back on now."));
+  Serial1.println(F("Turning all eye LEDs back on now."));
   headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
   mip.writeHeadLEDs(headLEDs);
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 static void printLEDString(MiPHeadLED led) {
   switch (led) {
     case MIP_HEAD_LED_OFF:
-      Serial.println(F("Off"));
+      Serial1.println(F("Off"));
       break;
     case MIP_HEAD_LED_ON:
-      Serial.println(F("On"));
+      Serial1.println(F("On"));
       break;
     case MIP_HEAD_LED_BLINK_SLOW:
-      Serial.println(F("Blink Slow"));
+      Serial1.println(F("Blink Slow"));
       break;
     case MIP_HEAD_LED_BLINK_FAST:
-      Serial.println(F("Blink Fast"));
+      Serial1.println(F("Blink Fast"));
       break;
     default:
-      Serial.println();
+      Serial1.println();
       break;
   }
 }

@@ -16,20 +16,20 @@
     availableGestureEvents()
     readGestureEvent()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Gesture.ino - Detect gesture and inform user as they occur."));
+  Serial1.println(F("Gesture.ino - Detect gesture and inform user as they occur."));
 
-  Serial.println(F("Waiting for robot to be standing upright."));
+  Serial1.println(F("Waiting for robot to be standing upright."));
   while (!mip.isUpright()) {
     // Waiting
   }
@@ -39,32 +39,32 @@ void setup() {
 void loop() {
   while (mip.availableGestureEvents() > 0) {
     MiPGesture gesture = mip.readGestureEvent();
-    Serial.print(F("Detected "));
+    Serial1.print(F("Detected "));
     switch (gesture) {
       case MIP_GESTURE_LEFT:
-        Serial.println(F("Left gesture!"));
+        Serial1.println(F("Left gesture!"));
         break;
       case MIP_GESTURE_RIGHT:
-        Serial.println(F("Right gesture!"));
+        Serial1.println(F("Right gesture!"));
         break;
       case MIP_GESTURE_CENTER_SWEEP_LEFT:
-        Serial.println(F("Center Sweep Left gesture!"));
+        Serial1.println(F("Center Sweep Left gesture!"));
         break;
       case MIP_GESTURE_CENTER_SWEEP_RIGHT:
-        Serial.println(F("Center Sweep Right gesture!"));
+        Serial1.println(F("Center Sweep Right gesture!"));
         break;
       case MIP_GESTURE_CENTER_HOLD:
-        Serial.println(F("Center Hold gesture!"));
+        Serial1.println(F("Center Hold gesture!"));
         break;
       case MIP_GESTURE_FORWARD:
-        Serial.println(F("Forward gesture!"));
+        Serial1.println(F("Forward gesture!"));
         break;
       case MIP_GESTURE_BACKWARD:
-        Serial.println(F("Backward gesture!"));
+        Serial1.println(F("Backward gesture!"));
         break;
       case MIP_GESTURE_INVALID:
         // This shouldn't really happen since mip.availableGestureEvents() returned > 0.
-        Serial.println(F("INVALID gesture!"));
+        Serial1.println(F("INVALID gesture!"));
         break;
     }
   }

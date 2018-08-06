@@ -16,18 +16,18 @@
     rawSend()
     rawReceive()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("RawSendReceive.ino - Use raw*() functions.\n"
+  Serial1.println(F("RawSendReceive.ino - Use raw*() functions.\n"
                    "Should set chest LED to purple and display MiP firmware revision"));
 
   // Send 4-byte MiP command to set Chest LED to Purple.
@@ -41,19 +41,19 @@ void setup() {
   int result = mip.rawReceive(getMiPSoftwareVersion, sizeof(getMiPSoftwareVersion) - 1,
                               response, sizeof(response), responseLength);
   if (result == MIP_ERROR_NONE && responseLength == 5 && response[0] == 0x14) {
-    Serial.print(F("MiP Software Version: "));
-    Serial.print(response[1] + 2000);
-    Serial.print('-');
-    Serial.print(response[2]);
-    Serial.print('-');
-    Serial.print(response[3]);
-    Serial.print(F(" (build #"));
-    Serial.print(response[4]);
-    Serial.print(')');
+    Serial1.print(F("MiP Software Version: "));
+    Serial1.print(response[1] + 2000);
+    Serial1.print('-');
+    Serial1.print(response[2]);
+    Serial1.print('-');
+    Serial1.print(response[3]);
+    Serial1.print(F(" (build #"));
+    Serial1.print(response[4]);
+    Serial1.print(')');
   }
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {

@@ -16,40 +16,40 @@
     fallForward()
     fallBackward()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("FallDown.ino - Fall forward and backward.\n"));
+  Serial1.println(F("FallDown.ino - Fall forward and backward.\n"));
 
-  Serial.println(F("Waiting for robot to be standing upright."));
+  Serial1.println(F("Waiting for robot to be standing upright."));
   while (!mip.isUpright()) {
     // Waiting
   }
   delay(1000);
 
-  Serial.println(F("Falling forward."));
+  Serial1.println(F("Falling forward."));
   mip.fallForward();
 
   delay(1000);
-  Serial.println(F("Waiting for robot to be standing upright again."));
+  Serial1.println(F("Waiting for robot to be standing upright again."));
   while (!mip.isUpright()) {
     // Waiting
   }
   delay(1000);
 
-  Serial.println(F("Falling backward."));
+  Serial1.println(F("Falling backward."));
   mip.fallBackward();
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {

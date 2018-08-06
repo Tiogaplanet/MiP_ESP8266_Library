@@ -18,7 +18,7 @@
     isMiPDetectionModeEnabled()
     readDetectedMiP()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP mip;
 
@@ -29,27 +29,27 @@ MiP mip;
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("EnableMiPDetectionMode.ino - Enable your MiP to be discovered by another using IR."));
+  Serial1.println(F("EnableMiPDetectionMode.ino - Enable your MiP to be discovered by another using IR."));
 
   mip.disableMiPDetectionMode();
   
   if (!mip.isMiPDetectionModeEnabled()) {
-    Serial.println(F("I am not discoverable."));
+    Serial1.println(F("I am not discoverable."));
   }
 
   mip.enableMiPDetectionMode(MIP_ID_NO, MIP_IR_TX_POWER);
 
   if (mip.isMiPDetectionModeEnabled()) {
-    Serial.println(F("Now I can be discovered."));
+    Serial1.println(F("Now I can be discovered."));
   }
 }
 
 void loop() {
   if (mip.availableDetectedMiPEvents()) {
-    Serial.print(F("I detected MiP with ID number ")); Serial.println(mip.readDetectedMiP(), HEX);
+    Serial1.print(F("I detected MiP with ID number ")); Serial1.println(mip.readDetectedMiP(), HEX);
   }
 }

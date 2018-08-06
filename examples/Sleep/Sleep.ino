@@ -15,34 +15,34 @@
 /* Example used in following API documentation:
     sleep()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Sleep.ino - Shows begin()/end()/sleep() functionality."));
-  Serial.println(F("Chest LED should be green to indicate UART connection."));
+  Serial1.println(F("Sleep.ino - Shows begin()/end()/sleep() functionality."));
+  Serial1.println(F("Chest LED should be green to indicate UART connection."));
 
   delay(5000);
-  Serial.println(F("Disconnecting from MiP. Chest LED should revert to blue."));
+  Serial1.println(F("Disconnecting from MiP. Chest LED should revert to blue."));
   mip.end();
 
   delay(5000);
-  Serial.println(F("Attempting to reconnect to MiP. Chest LED should turn green again."));
+  Serial1.println(F("Attempting to reconnect to MiP. Chest LED should turn green again."));
   connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed reconnecting to MiP!"));
+    Serial1.println(F("Failed reconnecting to MiP!"));
     return;
   }
 
   delay(5000);
-  Serial.println(F("Putting MiP to sleep. Will require power cycle before it will accept UART connections again."));
+  Serial1.println(F("Putting MiP to sleep. Will require power cycle before it will accept UART connections again."));
   mip.sleep();
 }
 

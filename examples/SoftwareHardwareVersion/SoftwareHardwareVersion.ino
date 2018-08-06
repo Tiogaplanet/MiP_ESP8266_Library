@@ -16,40 +16,40 @@
     readSoftwareVersion()
     readHardwareInfo()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("SoftwareHardwareVersion.ino - Use readSoftwareVersion() & readHardwareInfo() functions."));
+  Serial1.println(F("SoftwareHardwareVersion.ino - Use readSoftwareVersion() & readHardwareInfo() functions."));
 
   MiPSoftwareVersion softwareVersion;
   mip.readSoftwareVersion(softwareVersion);
-  Serial.print(F("software version: "));
-  Serial.print(softwareVersion.year);
-    Serial.print('-');
-    Serial.print(softwareVersion.month);
-    Serial.print('-');
-    Serial.print(softwareVersion.day);
-    Serial.print('.');
-    Serial.println(softwareVersion.uniqueVersion);
+  Serial1.print(F("software version: "));
+  Serial1.print(softwareVersion.year);
+    Serial1.print('-');
+    Serial1.print(softwareVersion.month);
+    Serial1.print('-');
+    Serial1.print(softwareVersion.day);
+    Serial1.print('.');
+    Serial1.println(softwareVersion.uniqueVersion);
 
   MiPHardwareInfo hardwareInfo;
   mip.readHardwareInfo(hardwareInfo);
-  Serial.println(F("hardware info"));
-  Serial.print(F("  voice chip version: "));
-    Serial.println(hardwareInfo.voiceChip);
-  Serial.print(F("  hardware version: "));
-    Serial.println(hardwareInfo.hardware);
+  Serial1.println(F("hardware info"));
+  Serial1.print(F("  voice chip version: "));
+    Serial1.println(hardwareInfo.voiceChip);
+  Serial1.print(F("  hardware version: "));
+    Serial1.println(hardwareInfo.hardware);
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {
