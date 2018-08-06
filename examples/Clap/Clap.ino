@@ -21,55 +21,55 @@
     availableClapEvents()
     readClapEvent()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Clap.ino - Use clap related functions."));
+  Serial1.println(F("Clap.ino - Use clap related functions."));
 
-  Serial.println(F("Calling disableClapEvents()"));
+  Serial1.println(F("Calling disableClapEvents()"));
   mip.disableClapEvents();
   bool isEnabled = mip.areClapEventsEnabled();
-  Serial.print(F("areClapEventsEnabled() returns "));
+  Serial1.print(F("areClapEventsEnabled() returns "));
   if (isEnabled) {
-    Serial.println(F("true - fail"));
+    Serial1.println(F("true - fail"));
   } else {
-    Serial.println(F("false - pass"));
+    Serial1.println(F("false - pass"));
   }
 
-  Serial.println(F("Calling writeClapDelay(501)"));
+  Serial1.println(F("Calling writeClapDelay(501)"));
   mip.writeClapDelay(501);
   uint16_t delay = mip.readClapDelay();
-  Serial.print(F("readClapDelay() returns "));
-  Serial.println(delay);
+  Serial1.print(F("readClapDelay() returns "));
+  Serial1.println(delay);
 
-  Serial.println(F("Calling enableClapEvents()"));
+  Serial1.println(F("Calling enableClapEvents()"));
   mip.enableClapEvents();
   isEnabled = mip.areClapEventsEnabled();
-  Serial.print(F("areClapEventsEnabled() returns "));
+  Serial1.print(F("areClapEventsEnabled() returns "));
   if (isEnabled) {
-    Serial.println(F("true - pass"));
+    Serial1.println(F("true - pass"));
   } else {
-    Serial.println(F("false - fail"));
+    Serial1.println(F("false - fail"));
   }
 
-  Serial.println();
-  Serial.println(F("Waiting for clap events!"));
+  Serial1.println();
+  Serial1.println(F("Waiting for clap events!"));
 }
 
 void loop() {
   while (mip.availableClapEvents() > 0) {
     uint8_t clapCount = mip.readClapEvent();
-    Serial.print(F("Detected "));
-      Serial.print(clapCount);
-      Serial.println(F(" claps"));
+    Serial1.print(F("Detected "));
+      Serial1.print(clapCount);
+      Serial1.println(F(" claps"));
   }
 }
 

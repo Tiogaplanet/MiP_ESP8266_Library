@@ -15,26 +15,26 @@
 /* Example used in following API documentation:
     stop()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("Stop.ino - Use stop() function. Interrupt a 360 degree turn with stop()."));
+  Serial1.println(F("Stop.ino - Use stop() function. Interrupt a 360 degree turn with stop()."));
 
   mip.turnLeft(360, 6);
   delay(1000);
   mip.stop();
   delay(1000);
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {

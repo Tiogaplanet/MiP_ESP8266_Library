@@ -16,10 +16,6 @@
 #include "mip_esp8266.h"
 
 
-// Make sure that the MiP module itself always uses the actual Serial object and not the redirection to MiPStream.
-#undef Serial
-
-
 // Number of times that begin() method should try to initialize the MiP.
 #define MIP_MAX_BEGIN_RETRIES 5
 
@@ -110,20 +106,14 @@
 #define MIP_IR_REMOTE_CONTROL_ENABLE  1
 
 
-// It is expected that the user will only instantiate a single MiP object (mostly likely a global object). This
-// pointer is set from within that singleton's constructor and later used by the global MiPStream when it needs to
-// call upon the MiP object to switch the UART between MiP and PC.
-MiP* MiP::s_pInstance = NULL;
-
-
 
 // Define an assert mechanism that can be used to log and halt when the user is found to be calling the API incorrectly.
 #define MIP_ASSERT(EXPRESSION) if (!(EXPRESSION)) mipAssert(__LINE__);
 
 static void mipAssert(uint32_t lineNumber)
 {
-    MiPStream.print(F("MiP Assert: mip.cpp:"));
-        MiPStream.println(lineNumber);
+    Serial1.print(F("MiP Assert: mip.cpp:"));
+        Serial1.println(lineNumber);
 
     while (1)
     {
@@ -135,15 +125,11 @@ static void mipAssert(uint32_t lineNumber)
 MiP::MiP()
 {
     clear();
-
-    // Track this instance in class specific global so that MiPStream can find it.
-    s_pInstance = this;
 }
 
 MiP::~MiP()
 {
     end();
-    s_pInstance = NULL;
 }
 
 void MiP::clear()
@@ -168,22 +154,18 @@ void MiP::clear()
 
 bool MiP::begin()
 {
-    // Swap the pins used to select the UART destination between the MiP and PC.
-    if(m_serialToMiP = false)
-    {
-        Serial.swap();
-        m_serialToMiP = true;
-    }
+    // Setup the debugging channel.
+    Serial1.begin(74880);
+
 
     // The MiP requires the UART to communicate at 115200-N-8-1.
-    // Call MiPStream.begin() instead of Serial.begin() directly so that it can track the begin/end state. This allows
-    // it to know that it should automatically initialize the Serial stream to 115200 if the user attempts to write to
-    // it before calling this MiP::begin method.
-    MiPStream.begin(115200);
+    Serial.begin(115200);
+    Serial.swap();
     Serial.setTimeout(MIP_RESPONSE_TIMEOUT);
 
     // Initialize the class members.
     clear();
+    
     // Roll the timers back so that the first calls can occur immediately.
     m_lastRequestTime = millis() - MIP_REQUEST_DELAY;
     m_lastContinuousDriveTime = millis() - MIP_CONTINUOUS_DRIVE_DELAY;
@@ -239,11 +221,9 @@ void MiP::end()
 
     clear();
 
-    MiPStream.end();
-    if(m_serialToMiP = true){
-        Serial.swap();
-        m_serialToMiP = false;   
-    }
+    // Swap the UART on the D1 mini back to the default RX/TX pair.
+    Serial.swap();
+    Serial.end();
 }
 
 void MiP::sleep()
@@ -260,23 +240,23 @@ void MiP::printLastCallResult()
 {
     if (m_lastError != MIP_ERROR_NONE)
     {
-        MiPStream.print(F("MiP: API returned "));
+        Serial1.print(F("MiP: API returned "));
         switch (m_lastError)
         {
         case MIP_ERROR_TIMEOUT:
-            MiPStream.println(F("MIP_ERROR_TIMEOUT (Timed out waiting for response)"));
+            Serial1.println(F("MIP_ERROR_TIMEOUT (Timed out waiting for response)"));
             break;
         case MIP_ERROR_NO_EVENT:
-            MiPStream.println(F("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)"));
+            Serial1.println(F("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)"));
             break;
         case MIP_ERROR_BAD_RESPONSE:
-            MiPStream.println(F("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)"));
+            Serial1.println(F("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)"));
             break;
         case MIP_ERROR_MAX_RETRIES:
-            MiPStream.println(F("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)"));
+            Serial1.println(F("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)"));
             break;
         default:
-            MiPStream.println(F("unknown error"));
+            Serial1.println(F("unknown error"));
             break;
         }
     }
@@ -2066,6 +2046,7 @@ uint32_t MiP::readIRDongleCode()
     processAllResponseData();
 
     uint32_t irCodeEvent = 0xFFFFFFFF;
+    
     if (!m_irCodeEvents.pop(irCodeEvent))
     {
         m_lastError = MIP_ERROR_NO_EVENT;
@@ -2178,8 +2159,6 @@ void MiP::transportSendRequest(const uint8_t* pRequest, size_t requestLength, in
     // Must call begin() and have it return 'true' before calling sending commands to the MiP.
     MIP_ASSERT( isInitialized() );
 
-    switchSerialToMiP();
-
     // Let the MiP process the last request before letting another request be issued.
     while (millis() - m_lastRequestTime < MIP_REQUEST_DELAY)
     {
@@ -2218,8 +2197,6 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     // UNDONE: I think it would be my bug if the following assert ever fired.
     MIP_ASSERT( m_expectedResponseCommand != 0 );
 
-    switchSerialToMiP();
-
     // Process all received bytes (which might include out of band notifications) until we find the response to the
     // last request made. Will timeout after a second.
     m_expectedResponseSize = (uint8_t)responseBufferSize;
@@ -2232,7 +2209,7 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     if (!responseFound)
     {
         // Never received the expected response within the timeout window.
-        MiPStream.println(F("MiP: Response timeout"));
+        Serial1.println(F("MiP: Response timeout"));
         return MIP_ERROR_TIMEOUT;
     }
 
@@ -2252,8 +2229,6 @@ bool MiP::processAllResponseData()
     uint8_t buffer[(MIP_RESPONSE_MAX_LEN - 1) * 2];
     size_t  bytesToRead;
     size_t  bytesRead;
-
-    switchSerialToMiP();
 
     while (Serial.available() >= 2)
     {
@@ -2284,10 +2259,10 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                MiPStream.print(F("MiP: Response too short: "));
-                    MiPStream.print(bytesRead);
-                    MiPStream.print(',');
-                    MiPStream.println(bytesToRead * 2);
+                Serial1.print(F("MiP: Response too short: "));
+                    Serial1.print(bytesRead);
+                    Serial1.print(',');
+                    Serial1.println(bytesToRead * 2);
                 break;
             }
         }
@@ -2358,28 +2333,28 @@ void MiP::processOobResponseData(uint8_t commandByte)
         bytesRead = Serial.readBytes(nibbles, sizeof(nibbles));
         if (bytesRead != sizeof(nibbles))
         {
-            MiPStream.println(F("MiP: Missing IR code length"));
+            Serial1.println(F("MiP: Missing IR code length"));
             return;
         }
         length = (parseHexDigit(nibbles[0]) << 4) | parseHexDigit(nibbles[1]);
         if (length < 2 || length > 4)
         {
             uint8_t discardedBytes = discardUnexpectedSerialData();
-            MiPStream.print(F("MiP: Bad IR code length: "));
-            MiPStream.print(length, HEX);
-            MiPStream.print(F(" (discarded "));
-            MiPStream.print(discardedBytes);
-            MiPStream.println(F(" bytes)"));
+            Serial1.print(F("MiP: Bad IR code length: "));
+            Serial1.print(length, HEX);
+            Serial1.print(F(" (discarded "));
+            Serial1.print(discardedBytes);
+            Serial1.println(F(" bytes)"));
             return;
         }
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        MiPStream.print(F("MiP: Bad OOB command byte: "));
-            MiPStream.print(commandByte, HEX);
-            MiPStream.print(F(" (discarded "));
-            MiPStream.print(discardedBytes);
-            MiPStream.println(F(" bytes)"));
+        Serial1.print(F("MiP: Bad OOB command byte: "));
+            Serial1.print(commandByte, HEX);
+            Serial1.print(F(" (discarded "));
+            Serial1.print(discardedBytes);
+            Serial1.println(F(" bytes)"));
         return;
     }
 
@@ -2390,10 +2365,10 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        MiPStream.print(F("MiP: OOB too short: "));
-            MiPStream.print(bytesRead);
-            MiPStream.print(',');
-            MiPStream.println(length * 2);
+        Serial1.print(F("MiP: OOB too short: "));
+            Serial1.print(bytesRead);
+            Serial1.print(',');
+            Serial1.println(length * 2);
         return;
     }
 
@@ -2468,110 +2443,3 @@ uint8_t MiP::discardUnexpectedSerialData()
     return discardedBytes;
 }
 
-
-
-// This class can be used instead of Serial for sending text to the PC. It makes sure that the D1 mini switches
-// the UART signals away from the MiP and to the PC before actually performing the Serial write.
-MiPStream::MiPStream()
-{
-    m_isInit = false;
-}
-
-// Methods that must be implemented for Stream subclasses.
-int MiPStream::available()
-{
-    initIfNeeded();
-    return Serial.available();
-}
-
-int MiPStream::read()
-{
-    initIfNeeded();
-    return Serial.read();
-}
-
-int MiPStream::peek()
-{
-    initIfNeeded();
-    return Serial.peek();
-}
-
-// Methods that must be implemented for Print subclasses.
-size_t MiPStream::write(uint8_t byte)
-{
-    initIfNeeded();
-    bool needToRestore = MiP::isInstanceSerialGoingToMiP();
-    MiP::switchInstanceSerialToPC();
-    size_t result = Serial.write(byte);
-    if (needToRestore)
-    {
-        MiP::switchInstanceSerialToMiP();
-    }
-    return result;
-}
-
-size_t MiPStream::write(const uint8_t *pBuffer, size_t size)
-{
-    initIfNeeded();
-    bool needToRestore = MiP::isInstanceSerialGoingToMiP();
-    MiP::switchInstanceSerialToPC();
-    size_t result = Serial.write(pBuffer, size);
-    if (needToRestore)
-    {
-        MiP::switchInstanceSerialToMiP();
-    }
-    return result;
-}
-
-int MiPStream::availableForWrite()
-{
-    initIfNeeded();
-    return Serial.availableForWrite();
-}
-
-void MiPStream::flush()
-{
-    initIfNeeded();
-    return Serial.flush();
-}
-
-void MiPStream::begin(unsigned long baud, uint8_t mode)
-{
-    // Silence compiler warnings about unused parameters.
-    (void)baud;
-    (void)mode;
-
-    if (m_isInit)
-    {
-        // Ignore redundant begin() calls.
-        return;
-    }
-    m_isInit = true;
-
-    // Fix the baud rate / mode at 115200-8-N-1 since that is required by the MiP.
-    Serial.begin(115200, SERIAL_8N1);
-}
-
-void MiPStream::end()
-{
-    if (!m_isInit)
-    {
-        // Ignore end() if no begin() call has been made.
-        return;
-    }
-
-    Serial.end();
-    m_isInit = false;
-}
-
-void MiPStream::initIfNeeded()
-{
-    // Make sure that Serial stream has been initialized by user or MiP.
-    if (!m_isInit)
-    {
-        begin(115200);
-    }
-}
-
-// Instantiate the single instance of this stream.
-class MiPStream MiPStream;

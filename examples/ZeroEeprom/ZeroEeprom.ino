@@ -16,28 +16,27 @@
     setUserData()
     getUserData()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 uint8_t eepromContents;
 char    outputString;
 
 void setup() {
-  // First need to initialize the serial connection with the MiP.
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("ZeroEeprom.ino - Writes zeros to each byte in EEPROM."));
+  Serial1.println(F("ZeroEeprom.ino - Writes zeros to each byte in EEPROM."));
 
   // Variable i is the EEPROM address offset where we will start writing zeroes.
   for (uint8_t i = 0x00; i <= 0x0F; i++) {
     mip.setUserData(i, 0x00);
     delay(1000);
 
-    Serial.print("0x2"); Serial.print(i, HEX); Serial.print(": "); Serial.print("0x0"); Serial.println(mip.getUserData(i), HEX);
+    Serial1.print("0x2"); Serial1.print(i, HEX); Serial1.print(": "); Serial1.print("0x0"); Serial1.println(mip.getUserData(i), HEX);
   }
 }
 

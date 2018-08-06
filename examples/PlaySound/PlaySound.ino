@@ -18,18 +18,18 @@
     addSoundToList()
     playSoundList()
 */
-#include <mip.h>
+#include <mip_esp8266.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP!"));
     return;
   }
 
-  Serial.println(F("PlaySound.ino - Play a few sounds."));
+  Serial1.println(F("PlaySound.ino - Play a few sounds."));
 
   // Play a single sound.
   mip.playSound(MIP_SOUND_ACTION_DRINKING, MIP_VOLUME_4);
@@ -46,8 +46,8 @@ void setup() {
   delay(10000);
   mip.playSoundList();
 
-  Serial.println();
-  Serial.println(F("Sample done."));
+  Serial1.println();
+  Serial1.println(F("Sample done."));
 }
 
 void loop() {
