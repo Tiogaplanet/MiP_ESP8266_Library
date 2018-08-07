@@ -23,6 +23,7 @@
 
 const char* ssid = "..............";          // Enter the SSID for your wifi network.
 const char* password = "..............";      // Enter your wifi password.
+
 const char* hostname = "MiP-0x01";            // Set any hostname you desire.
 
 MiP         mip;                              // We need a single MiP object
@@ -32,8 +33,8 @@ bool        connectResult;                    // Test whether a connection to Mi
 void setup() {
   defaultInit();                              // See at defaultInit() below. It handles all connections.
 
-  Serial.print("IP address: ");               // You could delete this chunk of code.  It's just here
-  Serial.println(WiFi.localIP());             // to show your IP address.
+  Serial1.print("IP address: ");               // You could delete this chunk of code.  It's just here
+  Serial1.println(WiFi.localIP());             // to show your IP address.
 }
 
 void loop() {
@@ -51,12 +52,17 @@ void loop() {
 // Do not change anything below this line.  Beyond here lies wifi and MiP connections.
 
 void defaultInit() {
-  Serial.begin(115200);
-  Serial.println("Booting");
-  WiFi.mode(WIFI_STA);                        // Bring up wifi first.  It will give MiP a chance to be ready.
+  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
+  if (!connectResult) {
+    Serial1.println(F("Failed connecting to MiP!"));
+    return;
+  }
+  Serial1.println("Booting...");
+
+  WiFi.mode(WIFI_STA);                        // Next, bring up wifi.
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("Connection Failed! Rebooting...");
+    Serial1.println("Connection Failed! Rebooting...");
     delay(5000);
     ESP.restart();
   }
@@ -71,21 +77,21 @@ void defaultInit() {
       type = "filesystem";
 
     // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    Serial.println("Start updating " + type);
+    Serial1.println("Start updating " + type);
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
+    Serial1.println("\nEnd");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    Serial1.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial1.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial1.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial1.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial1.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial1.println("End Failed");
   });
 
   ArduinoOTA.begin();
@@ -93,10 +99,4 @@ void defaultInit() {
   Debug.begin(hostname);                      // Start the debugging telnet server with hostname set.
 
   Debug.setResetCmdEnabled(true);             // Allow a reset to the ESP8266 from the telnet client.
-
-  connectResult = mip.begin();                // Establish the connection between the D1 mini and MiP.
-  if (!connectResult) {
-    Serial.println(F("Failed connecting to MiP!"));
-    return;
-  }
 }
