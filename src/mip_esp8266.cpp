@@ -152,6 +152,56 @@ void MiP::clear()
     m_irId = 0x00;
 }
 
+bool MiP::begin(char* ssid, char* password, char* hostname)
+{
+    bool returnValue = begin();
+    
+    m_ssid = ssid;
+    m_password = password;
+    m_hostname = hostname;
+    
+    WiFi.mode(WIFI_STA);                        // Next, bring up wifi.
+    WiFi.begin(m_ssid, m_password);
+    while (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+        Serial1.println(F("Connection Failed! Rebooting..."));
+        delay(5000);
+        ESP.restart();
+    }
+
+    ArduinoOTA.onStart([]() {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH)
+        {
+            type = "sketch";
+        }
+        else // U_SPIFFS
+        {
+            type = "filesystem";
+        }
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        Serial1.println("Start updating " + type);
+        });
+    ArduinoOTA.onEnd([]() {
+        Serial1.println(F("\nEnd"));
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+        Serial1.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR) Serial1.println(F("Auth Failed"));
+        else if (error == OTA_BEGIN_ERROR) Serial1.println(F("Begin Failed"));
+        else if (error == OTA_CONNECT_ERROR) Serial1.println(F("Connect Failed"));
+        else if (error == OTA_RECEIVE_ERROR) Serial1.println(F("Receive Failed"));
+        else if (error == OTA_END_ERROR) Serial1.println(F("End Failed"));
+    });
+
+    ArduinoOTA.begin();
+    
+    return returnValue;
+}
+
 bool MiP::begin()
 {
     // Setup the debugging channel.
