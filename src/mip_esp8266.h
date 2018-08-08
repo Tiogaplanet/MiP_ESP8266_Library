@@ -22,6 +22,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "queue.h"
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
 // Integer error codes that can be encountered by MiP API functions.
 #define MIP_ERROR_NONE          0 // Success
@@ -386,6 +390,7 @@ public:
     ~MiP();
 
     bool begin();
+    bool begin(char* ssid, char* password, char* hostname);
     void end();
     void sleep();
 
@@ -512,6 +517,8 @@ public:
 protected:
     void    clear();
 
+    void    connect();
+
     void    verifiedSetGestureRadarMode(MiPGestureRadarMode desiredMode);
     bool    checkGestureRadarMode(MiPGestureRadarMode expectedMode);
     void    rawSetGestureRadarMode(MiPGestureRadarMode mode);
@@ -596,6 +603,9 @@ protected:
     CircularQueue<uint32_t, 8>   m_irCodeEvents;
     CircularQueue<uint8_t, 8>    m_detectedMiPEvents;
     uint8_t                      m_irId;
+    char*                        m_ssid;
+    char*                        m_password;
+    char*                        m_hostname;
 };
 
 #endif // MIP_H_
