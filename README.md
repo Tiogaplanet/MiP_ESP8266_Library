@@ -13,6 +13,8 @@ MiP is a hacker friendly self-balancing robot. WowWee not only provides the [MiP
 * Detect the MiP's current pose via its inertial sensors, the same sensors that make its balancing magic possible.
 * And more!
 
+Also, be sure to check out the [D1 mini Pack](https://github.com/Tiogaplanet/MiP_D1-mini-Pack) which conveniently allows you to mount a D1 mini to MiP's battery compartment.
+
 ## Acknowledgement
 * This library is a port of adamgreen's [MiP_ProMini Pack](https://github.com/adamgreen/MiP_ProMini-Pack).  Here you will find all the  same functionality as his original library but with cloud-connectivity too!<br>
 * JoaoLopesF developed the highly valuable [RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug) library which makes debugging MiP wireless and easy.
