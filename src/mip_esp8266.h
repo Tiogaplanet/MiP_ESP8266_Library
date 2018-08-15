@@ -15,8 +15,8 @@
 /* This header file describes the public API that an application can use to communicate with the WowWee MiP
    self-balancing robot.
 */
-#ifndef MIP_H_
-#define MIP_H_
+#ifndef MIP_ESP8266_H
+#define MIP_ESP8266_H
 
 #include <Arduino.h>
 #include <stdint.h>
@@ -608,4 +608,4 @@ protected:
     char*                        m_hostname;
 };
 
-#endif // MIP_H_
+#endif // MIP_ESP8266_H
