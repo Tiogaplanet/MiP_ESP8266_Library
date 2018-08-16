@@ -25,8 +25,6 @@ Also, be sure to check out the [D1 mini Pack](https://github.com/Tiogaplanet/MiP
 
 2. The MiP_ESP8266_Library is intended for use with the Arduino IDE.  Installation is the same as for other libraries.  Download the zip and select `Sketch->Include Library->Add .ZIP Library...`.  Browse to the downloaded zip file and the Arduino IDE will do the rest.
 
-3. The MiP_ESP8266_Library requires JoaoLopesF's [RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug) library.  Install it too using the same process described for installing the MiP_ESP8266_Library.
-
 ## Usage
 A very thorough guide to using the MiP_ESP8266_Library is provided in the [wiki](https://github.com/Tiogaplanet/MiP_ESP8266_Library/wiki).
 
