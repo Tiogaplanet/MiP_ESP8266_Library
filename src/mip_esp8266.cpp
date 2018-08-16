@@ -160,7 +160,7 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
     m_password = password;
     m_hostname = hostname;
     
-    WiFi.mode(WIFI_STA);                        // Next, bring up wifi.
+    WiFi.mode(WIFI_STA);
     WiFi.begin(m_ssid, m_password);
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
@@ -274,6 +274,9 @@ void MiP::end()
     // Swap the UART on the D1 mini back to the default RX/TX pair.
     Serial.swap();
     Serial.end();
+    
+    // Shutdown the debugging channel.
+    Serial1.end();
 }
 
 void MiP::sleep()
