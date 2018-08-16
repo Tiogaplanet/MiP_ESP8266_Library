@@ -13,7 +13,7 @@
    limitations under the License.
 */
 #include <mip_esp8266.h>
-#include <RemoteDebug.h>
+#include <mip_debug.h>
 
 char* ssid = "..............";                // Enter the SSID for your wifi network.
 char* password = "..............";            // Enter your wifi password.
@@ -23,8 +23,8 @@ char* hostname = "MiP-0x01";                  // Set any hostname you desire.
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
 
-RemoteDebug Debug;                            // For debugging over telnet.
-    
+MiPDebug Debug;                               // For debugging over telnet.
+
 long int lastTimeCheck;                       // Let's use a non-blocking delay.
 const int period = 30000;                     // Give the user time to open a telnet terminal.
 
@@ -34,14 +34,14 @@ void setup() {
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP."));
     return;
   }
 
-  Debug.begin(hostname);
-  
+  Debug.begin(hostname, Debug.ANY);
+
   Debug.setResetCmdEnabled(true);             // Enable the reset command
-      
+
   Serial1.println(F("TelnetDebug.ino - Explore the different telnet debug levels."));
   Serial1.println();
   Serial1.print("IP address: ");
@@ -70,6 +70,14 @@ void loop() {
 
       runOnce = false;
     }
+
+    DEBUG_V("* This is a message of debug level VERBOSE\n");
+    DEBUG_D("* This is a message of debug level DEBUG\n");
+    DEBUG_I("* This is a message of debug level INFO\n");
+    DEBUG_W("* This is a message of debug level WARNING\n");
+    DEBUG_E("* This is a message of debug level ERROR\n");
+
+    lastTimeCheck = now;
   }
 
   Debug.handle();                            // Without this we can't debug MiP using telnet.
