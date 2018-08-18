@@ -20,7 +20,7 @@
 #include <Arduino.h>
 
 // Define a version number just for this telnet server, not the overall mip_esp8266 library.
-#define VERSION "0.1"
+#define VERSION "1.0.0"
 
 // The telnet server instance.
 WiFiServer telnetServer(TELNET_PORT);
@@ -33,6 +33,11 @@ void MiPDebug::begin(String hostname, uint8_t startingDebugLevel)
 
     // Reserve space to buffer output.
     m_bufferPrint.reserve(BUFFER_PRINT);
+
+#ifdef CLIENT_BUFFERING
+    // Reserve space for the send buffer.
+    m_bufferPrint.reserve(MAX_SIZE_SEND);
+#endif
 
     // Host name of this device.
     m_hostname = hostname;
@@ -154,6 +159,13 @@ void MiPDebug::handle()
         // Show the initial help message.
         showHelp();
 
+#ifdef CLIENT_BUFFERING
+        // Client buffering - send data in intervals to avoid delays or if it is too big.
+        m_bufferSend = "";
+        m_sizeBufferSend = 0;
+        m_lastTimeSend = millis();
+#endif
+
         // Read the input stream.
         delay(100);
         while (telnetClient.available()) {
@@ -201,6 +213,18 @@ void MiPDebug::handle()
             // Set this character as the last received character.
             last = character;
         }
+
+#ifdef CLIENT_BUFFERING
+        // Client buffering - send data in intervals to avoid delays or if its is too big
+
+        if ((millis() - m_lastTimeSend) >= DELAY_TO_SEND || m_sizeBufferSend >= MAX_SIZE_SEND)
+        {
+            telnetClient.print(m_bufferSend);
+            m_bufferSend = "";
+            m_sizeBufferSend = 0;
+            m_lastTimeSend = millis();
+        }
+#endif
 
 #ifdef MAX_TIME_INACTIVE
         // Inactivity - close connection if no commands have been received from the user in a
@@ -297,6 +321,16 @@ void MiPDebug::setHelpProjectsCmds(String help)
 void MiPDebug::setCallBackProjectCmds(void (*callback)())
 {
     m_callbackProjectCmds = callback;
+}
+
+// Print the user's debug message.
+size_t MiPDebug::write(const uint8_t *buffer, size_t size)
+{
+    for(size_t i = 0; i < size; i++) {
+        write((uint8_t)buffer[i]);
+    }
+
+    return size;
 }
 
 // Print the user's debug message.
@@ -437,7 +471,7 @@ size_t MiPDebug::write(uint8_t character)
             send.concat(") ");
 
             // Copy to the telnet buffer.
-            if (m_connected ||m_serialEnabled)
+            if (m_connected || m_serialEnabled)
             {
                 m_bufferPrint = send;
             }
@@ -458,13 +492,13 @@ size_t MiPDebug::write(uint8_t character)
 
     // If the output buffer is full then set the bool to print.
     }
-    else
+    else if (m_bufferPrint.length() == BUFFER_PRINT)
     {
         doPrint = true;
     }
 
     // Write to the telnet buffer.
-   m_bufferPrint.concat((char) character);
+    m_bufferPrint.concat((char) character);
 
     // Send the buffered characters.
     if (doPrint)
@@ -494,12 +528,40 @@ size_t MiPDebug::write(uint8_t character)
             // Send to telnet buffer.
             if (m_connected)
             {
+#ifndef CLIENT_BUFFERING
                 telnetClient.print(m_bufferPrint);
+#else
+                uint8_t size = m_bufferPrint.length();
+
+                // Is the buffer too big?
+                if ((m_sizeBufferSend + size) >= MAX_SIZE_SEND)
+                {
+                    // Send it.
+                    telnetClient.print(m_bufferSend);
+                    m_bufferSend = "";
+                    m_sizeBufferSend = 0;
+                    m_lastTimeSend = millis();
+                }
+
+                // Add to send buffer.
+                m_bufferSend.concat(m_bufferPrint);
+                m_sizeBufferSend += size;
+
+                // Client buffering - send data in intervals to avoid delays or if it is too big.
+                if ((millis() - m_lastTimeSend) >= DELAY_TO_SEND)
+                {
+                    telnetClient.print(m_bufferSend);
+                    m_bufferSend = "";
+                    m_sizeBufferSend = 0;
+                    m_lastTimeSend = millis();
+                }
+#endif
             }
+
             // Echo to serial without buffering.
             if (m_serialEnabled)
             {
-                Serial.print(m_bufferPrint);
+                Serial1.print(m_bufferPrint);
             }
         }
 
@@ -563,8 +625,8 @@ void MiPDebug::showHelp()
     help.concat("    filter:\r\n");
     help.concat("          filter <string> -> show only debug messages containing this value\r\n");
     help.concat("          nofilter        -> disable the filter\r\n");
-    help.concat("    cpu80  -> Set the ESP8266 CPU to 80MHz\r\n");
-    help.concat("    cpu160 -> Set the ESP8266 CPU to 160MHz\r\n");
+    help.concat("    cpu80  -> Set the ESP8266 CPU to 80 MHz\r\n");
+    help.concat("    cpu160 -> Set the ESP8266 CPU to 160 MHz\r\n");
     if (m_resetCommandEnabled)
     {
         help.concat("    reset -> reset the D1 mini Pack\r\n");

@@ -28,7 +28,7 @@ void setup() {
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Failed connecting to MiP."));
     return;
   }
 

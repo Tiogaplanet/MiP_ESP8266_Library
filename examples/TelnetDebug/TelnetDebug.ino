@@ -23,7 +23,7 @@ char* hostname = "MiP-0x01";                  // Set any hostname you desire.
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
 
-MiPDebug Debug;                               // For debugging over telnet.
+MiPDebug debug;                               // For debugging over telnet.
 
 long int lastTimeCheck;                       // Let's use a non-blocking delay.
 const int period = 30000;                     // Give the user time to open a telnet terminal.
@@ -38,13 +38,13 @@ void setup() {
     return;
   }
 
-  Debug.begin(hostname, Debug.ANY);
+  debug.begin(hostname);
 
-  Debug.setResetCmdEnabled(true);             // Enable the reset command
+  debug.setResetCmdEnabled(true);             // Enable the reset command
 
   Serial1.println(F("TelnetDebug.ino - Explore the different telnet debug levels."));
   Serial1.println();
-  Serial1.print("IP address: ");
+  Serial1.print(F("IP address: "));
   Serial1.println(WiFi.localIP());
   Serial1.println(F("Use serial debugging in setup()."));
 
@@ -58,28 +58,28 @@ void loop() {
 
   if (now > lastTimeCheck + period) {
     if (runOnce) {
-      DEBUG("The telnet debug utility is very helpful.  It can selectively print messages of different levels.\n");
-      DEBUG("Messages at the DEBUG level always print to telnet.\n");
-      DEBUG("All debugging messages can use formatted output.\n");
+      mDebug("The telnet debug utility is very helpful.  It can selectively print messages of different levels.\n");
+      mDebug("Messages at the mDebug level always print to telnet.\n");
+      mDebug("All debugging messages can use formatted %s.\n", "output");
 
-      DEBUG_V("This is a verbose message.\n");
-      DEBUG_D("This is a debug message.\n");
-      DEBUG_I("This is an informational message.\n");
-      DEBUG_W("This is a warning message.\n");
-      DEBUG_E("This is an error message.\n");
+      mDebugV("This is a verbose message.\n");
+      mDebugD("This is a debug message.\n");
+      mDebugI("This is an informational message.\n");
+      mDebugW("This is a warning message.\n");
+      mDebugE("This is an error message.\n");
 
       runOnce = false;
     }
 
-    DEBUG_V("* This is a message of debug level VERBOSE\n");
-    DEBUG_D("* This is a message of debug level DEBUG\n");
-    DEBUG_I("* This is a message of debug level INFO\n");
-    DEBUG_W("* This is a message of debug level WARNING\n");
-    DEBUG_E("* This is a message of debug level ERROR\n");
+    mDebugV("* This is a message of debug level VERBOSE\n");
+    mDebugD("* This is a message of debug level DEBUG\n");
+    mDebugI("* This is a message of debug level INFO\n");
+    mDebugW("* This is a message of debug level WARNING\n");
+    mDebugE("* This is a message of debug level ERROR\n");
 
     lastTimeCheck = now;
   }
 
-  Debug.handle();                            // Without this we can't debug MiP using telnet.
+  debug.handle();                            // Without this we can't debug MiP using telnet.
 }
 

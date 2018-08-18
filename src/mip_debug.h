@@ -28,13 +28,13 @@ bool system_update_cpu_freq(uint8 freq);
 }
 
 // Define an mechanism for quickly calling the various debug levels provided by the system.
-#define DEBUG(...)   { if (Debug.isActive(Debug.ANY)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_P(...) { if (Debug.isActive(Debug.PROFILER)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_V(...) { if (Debug.isActive(Debug.VERBOSE)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_D(...) { if (Debug.isActive(Debug.DEBUG)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_I(...) { if (Debug.isActive(Debug.INFO)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_W(...) { if (Debug.isActive(Debug.WARNING)) Debug.printf(__VA_ARGS__); }
-#define DEBUG_E(...) { if (Debug.isActive(Debug.ERROR)) Debug.printf(__VA_ARGS__); }
+#define mDebug(...)   { if (debug.isActive(debug.ANY)) debug.printf(__VA_ARGS__); }
+#define mDebugP(...) { if (debug.isActive(debug.PROFILER)) debug.printf(__VA_ARGS__); }
+#define mDebugV(...) { if (debug.isActive(debug.VERBOSE)) debug.printf(__VA_ARGS__); }
+#define mDebugD(...) { if (debug.isActive(debug.DEBUG)) debug.printf(__VA_ARGS__); }
+#define mDebugI(...) { if (debug.isActive(debug.INFO)) debug.printf(__VA_ARGS__); }
+#define mDebugW(...) { if (debug.isActive(debug.WARNING)) debug.printf(__VA_ARGS__); }
+#define mDebugE(...) { if (debug.isActive(debug.ERROR)) debug.printf(__VA_ARGS__); }
 
 // The default port for the telnet service.
 #define TELNET_PORT 23
@@ -45,6 +45,15 @@ bool system_update_cpu_freq(uint8 freq);
 
 // Defines the buffer size for buffered output.
 #define BUFFER_PRINT 150
+
+// Defines some values for buffering output.
+//#define CLIENT_BUFFERING true
+#ifdef CLIENT_BUFFERING
+// Minimum time before sending the buffer.
+#define DELAY_TO_SEND 10
+// Maximum size of packet (limit of TCP/IP).
+#define MAX_SIZE_SEND 1460
+#endif
 
 // ANSI color codes.
 #define COLOR_RESET "\x1B[0m"
@@ -78,7 +87,7 @@ bool system_update_cpu_freq(uint8 freq);
 class MiPDebug: public Print
 {
 public:
-    void begin(String hostname, uint8_t startingDebugLevel = DEBUG);
+    void begin(String hostname, uint8_t startingDebugLevel = VERBOSE);
     void stop();
 
     void handle();
@@ -101,8 +110,9 @@ public:
 
     bool isActive(uint8_t debugLevel = DEBUG);
 
-    // This is the extended write function for the Print class.
+    // These are the extended write methods for the Print class.
     virtual size_t write(uint8_t);
+    virtual size_t write(const uint8_t *buffer, size_t size);
 
     // Definitions for each of the debug levels.
     static const uint8_t PROFILER = 0;  // Used to show time of execution of pieces of code (profiler).
@@ -146,6 +156,11 @@ protected:
     String   m_filter = "";                 // The filter string.
     bool     m_filterActive = false;        // Is the filter active?
     String   m_bufferPrint = "";            // Print buffer for telnet output.
+#ifdef CLIENT_BUFFERING
+    String   m_bufferSend = "";             // Buffer for sending data to telnet client.
+    uint16_t m_sizeBufferSend = 0;          // The size of the buffer.
+    uint32_t m_lastTimeSend = 0;            // The last time the command sent data.
+#endif
 };
 
 #endif
