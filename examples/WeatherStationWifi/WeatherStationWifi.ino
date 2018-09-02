@@ -59,6 +59,10 @@ char* hostname = "MiP-0x01";                  // Set any hostname you desire.
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
 
+unsigned long previousMillis = 0;             // Store the last time OpenWeatherMap was queried
+const long interval = 900000;                   // Update every 15 minutes (900000 milliseconds)
+
+OpenWeatherMapCurrentData data;
 
 void setup() {
   connectResult = mip.begin(ssid, password, hostname);
@@ -69,9 +73,20 @@ void setup() {
   }
 
   Serial1.println();
-  Serial1.println("\n\nNext Loop-Step: " + String(millis()) + ":");
 
-  OpenWeatherMapCurrentData data;
+  updateWeather();
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    updateWeather();
+    previousMillis = currentMillis;
+  }
+}
+
+void updateWeather() {
+
   client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
   client.setMetric(IS_METRIC);
   client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
@@ -109,6 +124,7 @@ void setup() {
 
   uint8_t red, green, blue;
 
+// Range of blue.
   if (data.temp < 32) {
     blue = 255;
   }
@@ -119,6 +135,7 @@ void setup() {
     blue = 0;
   }
 
+// Range of green.
   if (data.temp < 32) {
     green = 0;
   }
@@ -132,6 +149,7 @@ void setup() {
     green = map(data.temp, 80, 125, 255, 0);
   }
 
+// Range of red.
   if (data.temp < 72) {
     red = 0;
   }
@@ -142,13 +160,12 @@ void setup() {
     red = 255;
   }
 
+  // Show the RGB values in the serial monitor.
+  Serial1.print(F("R: ")); Serial1.println(red);
+  Serial1.print(F("G: ")); Serial1.println(green);
+  Serial1.print(F("B: ")); Serial1.println(blue);
+
+  // Write it to the chest LED.
   mip.writeChestLED(red, green, blue);
-
-  Serial1.print(F("R: "));Serial1.println(red);
-  Serial1.print(F("G: "));Serial1.println(green);
-  Serial1.print(F("B: "));Serial1.println(blue);
 }
 
-void loop() {
-  // The chest LED could be updated for example, every fifteen minutes.
-}
