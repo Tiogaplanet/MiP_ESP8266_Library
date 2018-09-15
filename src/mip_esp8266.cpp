@@ -46,6 +46,15 @@
 // Last addressable address in EEPROM.
 #define MIP_LAST_EEPROM_ADDRESS 0x2F
 
+// Baud rate for MiP communications.
+#define MIP_FAST_BAUD_RATE 115200
+
+// Slower baud rate used by later MiPs.
+#define MIP_SLOW_BAUD_RATE 9600
+
+// Baud rate used for the esp8266 debug channel.
+#define ESP8266_DEBUG_BAUD_RATE 74880
+
 // MiP Protocol Commands.
 // These command codes are placed in the first byte of requests sent to the MiP and responses sent back from the MiP.
 // See https://github.com/WowWeeLabs/MiP-BLE-Protocol/blob/master/MiP-Protocol.md for more information.
@@ -155,11 +164,11 @@ void MiP::clear()
 bool MiP::begin(char* ssid, char* password, char* hostname)
 {
     bool returnValue = begin();
-    
+
     m_ssid = ssid;
     m_password = password;
     m_hostname = hostname;
-    
+
     WiFi.mode(WIFI_STA);
     WiFi.begin(m_ssid, m_password);
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
@@ -198,24 +207,18 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
     });
 
     ArduinoOTA.begin();
-    
+
     return returnValue;
 }
 
 bool MiP::begin()
 {
     // Setup the debugging channel.
-    Serial1.begin(74880);
-
-
-    // The MiP requires the UART to communicate at 115200-N-8-1.
-    Serial.begin(115200);
-    Serial.swap();
-    Serial.setTimeout(MIP_RESPONSE_TIMEOUT);
+    Serial1.begin(ESP8266_DEBUG_BAUD_RATE);
 
     // Initialize the class members.
     clear();
-    
+
     // Roll the timers back so that the first calls can occur immediately.
     m_lastRequestTime = millis() - MIP_REQUEST_DELAY;
     m_lastContinuousDriveTime = millis() - MIP_CONTINUOUS_DRIVE_DELAY;
@@ -229,23 +232,34 @@ bool MiP::begin()
     int8_t retry;
     for (retry = 0 ; retry < MIP_MAX_BEGIN_RETRIES ; retry++)
     {
-        // Send 0xFF to the MiP via UART to enable the UART communication channel in the MiP.
-        const uint8_t initMipCommand[] = { 0xFF };
-        rawSend(initMipCommand, sizeof(initMipCommand));
+        // Early MiPs require the UART to communicate at 115200-N-8-1.
+        Serial.begin(MIP_FAST_BAUD_RATE);
 
-        // The MiP UART documentation indicates that this delay is required after sending 0xFF.
-        delay(30);
-        // Flush any outstanding junk data in receive buffer.
-        discardUnexpectedSerialData();
+        connectAttempt();
 
         // Attempt to get the MiP's latest status to see if the connection was successful or not.
         int result = rawGetStatus(m_lastStatus);
         if (result == MIP_ERROR_NONE)
         {
             // Connection must be successful since this request was successful.
+            Serial1.println(F("Connected at 115200."));
             break;
+        } 
+        else
+        {
+            // If the above connectAttempt() was unsuccessful, try again at 9600-N-8-1.
+            Serial.end();
+            Serial.begin(MIP_SLOW_BAUD_RATE);
+            connectAttempt();
+            
+            result = rawGetStatus(m_lastStatus);
+            if (result == MIP_ERROR_NONE)
+            {
+                // Connection must be successful since this request was successful.
+                Serial1.println(F("Connected at 9600."));
+                break;
+            }
         }
-
         // Sleep a bit before making the next attempt.
         delay(MIP_BEGIN_RETRY_WAIT);
     }
@@ -257,6 +271,22 @@ bool MiP::begin()
     }
 
     return true;
+}
+
+void MiP::connectAttempt()
+{
+    Serial.swap();
+    Serial.setTimeout(MIP_RESPONSE_TIMEOUT);
+
+    // Send 0xFF to the MiP via UART to enable the UART communication channel in the MiP.
+    const uint8_t initMipCommand[] = { 0xFF };
+    rawSend(initMipCommand, sizeof(initMipCommand));
+
+    // The MiP UART documentation indicates that this delay is required after sending 0xFF.
+    delay(30);
+
+    // Flush any outstanding junk data in receive buffer.
+    discardUnexpectedSerialData();
 }
 
 void MiP::end()
@@ -274,7 +304,7 @@ void MiP::end()
     // Swap the UART on the D1 mini back to the default RX/TX pair.
     Serial.swap();
     Serial.end();
-    
+
     // Shutdown the debugging channel.
     Serial1.end();
 }
@@ -2099,7 +2129,7 @@ uint32_t MiP::readIRDongleCode()
     processAllResponseData();
 
     uint32_t irCodeEvent = 0xFFFFFFFF;
-    
+
     if (!m_irCodeEvents.pop(irCodeEvent))
     {
         m_lastError = MIP_ERROR_NO_EVENT;
