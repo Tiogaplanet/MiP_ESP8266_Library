@@ -273,6 +273,8 @@ bool MiP::begin()
     return true;
 }
 
+// This internal protected method provides the common code for connection attempts at
+// baud rates of 115200 or 9600.
 void MiP::connectAttempt()
 {
     Serial.swap();
