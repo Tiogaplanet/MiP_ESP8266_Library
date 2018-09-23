@@ -173,7 +173,7 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
     WiFi.begin(m_ssid, m_password);
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-        Serial1.println(F("Connection Failed! Rebooting..."));
+        Serial1.println(F("MiP: Internet connection failed. Rebooting..."));
         delay(5000);
         ESP.restart();
     }
@@ -207,6 +207,7 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
     });
 
     ArduinoOTA.begin();
+    Serial1.print(F("MiP: IP address: ")); Serial1.println(WiFi.localIP());
 
     return returnValue;
 }
@@ -264,7 +265,7 @@ int8_t MiP::attemptMiPConnection(uint32_t baudRate)
     // Set baud rate to specified rate.
     Serial.begin(baudRate);
     Serial.swap();
-    
+
     // Send 0xFF to the MiP via UART to enable the UART communication channel in the MiP.
     const uint8_t initMipCommand[] = { 0xFF };
     rawSend(initMipCommand, sizeof(initMipCommand));

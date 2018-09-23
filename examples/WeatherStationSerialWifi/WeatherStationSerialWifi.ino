@@ -12,7 +12,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch turns MiP into a weather person.
+// This example sketch turns MiP into a weather person and writes the
+// weather data to the serial port.
 #include <mip_esp8266.h>
 #include <JsonListener.h>
 #include <time.h>
@@ -44,6 +45,10 @@ char* hostname = "MiP-0x01";
 
 MiP         mip;
 bool        connectResult;
+
+// For the chest LED.
+uint8_t red, green, blue = 0;
+bool chestValuesWritten = false;
 
 // Store the last time OpenWeatherMap was queried.
 unsigned long previousMillis = 0;
@@ -83,7 +88,8 @@ void loop() {
   if (currentMillis - previousMillis >= interval) {
     // Call the function to read from OpenWeatherMap.
     updateWeather();
-    updateChestLED();
+    chestValuesWritten = false;
+    writtenToSerial1 = false;
     previousMillis = currentMillis;
   }
 
@@ -94,6 +100,16 @@ void loop() {
   } else if (!lastUpdatedToSolid) {
     mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
     lastUpdatedToSolid = true;
+  }
+
+  // Update the chest LED if it hasn't been done in the last 15 minutes.
+  if (!chestValuesWritten) {
+    chestValuesWritten = updateChestLED();
+  }
+
+  // Write to the debug port if it hasn't been done in the last 15 minutes.
+  if (!writtenToSerial1) {
+    writtenToSerial1 = writeWeatherToSerial1();
   }
 
   // Don't update the eyes too fast or you'll get MiP timeout errors.
@@ -109,46 +125,89 @@ void updateWeather() {
 
 // Set MiP's chest to indicate the current temperature using the algorithm, not the values, from:
 // https://sjackm.wordpress.com/2012/03/26/visualizing-temperature-as-color-using-an-rgb-led-a-lm35-sensor-and-arduino/
-void updateChestLED() {
-  uint8_t red, green, blue;
+bool updateChestLED() {
+  if (data.temp) {
+    // Range of blue.
+    if (data.temp < 32) {
+      blue = 255;
+    }
+    else if (data.temp > 32 && data.temp <= 72) {
+      blue = map(data.temp, 32, 72, 255, 0);
+    }
+    else if (data.temp > 72) {
+      blue = 0;
+    }
 
-  // Range of blue.
-  if (data.temp < 32) {
-    blue = 255;
-  }
-  else if (data.temp > 32 && data.temp <= 72) {
-    blue = map(data.temp, 32, 72, 255, 0);
-  }
-  else if (data.temp > 72) {
-    blue = 0;
-  }
+    // Range of green.
+    if (data.temp < 32) {
+      green = 0;
+    }
+    else if (data.temp > 32 && data.temp <= 60) {
+      green = map(data.temp, 32, 60, 0, 255);
+    }
+    else if (data.temp > 60 && data.temp <= 80) {
+      green = 255;
+    }
+    else if (data.temp > 80) {
+      green = map(data.temp, 80, 110, 255, 0);
+    }
 
-  // Range of green.
-  if (data.temp < 32) {
-    green = 0;
-  }
-  else if (data.temp > 32 && data.temp <= 60) {
-    green = map(data.temp, 32, 60, 0, 255);
-  }
-  else if (data.temp > 60 && data.temp <= 80) {
-    green = 255;
-  }
-  else if (data.temp > 80) {
-    green = map(data.temp, 80, 110, 255, 0);
-  }
+    // Range of red.
+    if (data.temp < 72) {
+      red = 0;
+    }
+    else if (data.temp >= 72 && data.temp <= 80) {
+      red = map(data.temp, 72, 80, 1, 255);
+    }
+    else if (data.temp > 80) {
+      red = 255;
+    }
 
-  // Range of red.
-  if (data.temp < 72) {
-    red = 0;
+    // Write it to the chest LED.
+    mip.writeChestLED(red, green, blue);
+  } else {
+    return false;
   }
-  else if (data.temp >= 72 && data.temp <= 80) {
-    red = map(data.temp, 72, 80, 1, 255);
-  }
-  else if (data.temp > 80) {
-    red = 255;
-  }
+  return true;
+}
 
-  // Write it to the chest LED.
-  mip.writeChestLED(red, green, blue);
+// Write the weather data to the debug port.
+bool writeWeatherToSerial1() {
+  // Reading from http may block access to Serial1 so only write to it if it's available.
+  if (Serial1) {
+    Serial1.println(F("---------------------------------------------------"));
+    Serial1.printf("City: %s\n\r", data.cityName.c_str());
+    Serial1.printf("Country: %s\n\r", data.country.c_str());
+    Serial1.printf("Longitude: %f\n\r", data.lon);
+    Serial1.printf("Latitude: %f\n\r", data.lat);
+    time_t time = data.observationTime;
+    Serial1.printf("Observation time: %s\r", ctime(&time));
+    Serial1.printf("Weather ID: %d\n\r", data.weatherId);
+    Serial1.printf("Main: %s\n\r", data.main.c_str());
+    Serial1.printf("Description: %s\n\r", data.description.c_str());
+    Serial1.printf("Icon: %s\n\r", data.icon.c_str());
+    Serial1.printf("IconMeteoCon: %s\n\r", data.iconMeteoCon.c_str());
+    Serial1.printf("Temperature: %f\n\r", data.temp);
+    Serial1.printf("Pressure: %d\n\r", data.pressure);
+    Serial1.printf("Humidity: %d\n\r", data.humidity);
+    Serial1.printf("Temperature minimum: %f\n\r", data.tempMin);
+    Serial1.printf("Temperature maximum: %f\n\r", data.tempMax);
+    Serial1.printf("Wind speed: %f\n\r", data.windSpeed);
+    Serial1.printf("Wind degrees: %f\n\r", data.windDeg);
+    Serial1.printf("Clouds: %d\n\r", data.clouds);
+    time = data.sunrise;
+    Serial1.printf("Sunrise: %s\r", ctime(&time));
+    time = data.sunset;
+    Serial1.printf("Sunset: %s\r", ctime(&time));
+    Serial1.println(F("---------------------------------------------------"));
+    Serial1.println(F("Chest LED values: "));
+    Serial1.printf("R: %d\n\r", red);
+    Serial1.printf("G: %d\n\r", green);
+    Serial1.printf("B: %d\n\r", blue);
+  }
+  else {
+    return false;
+  }
+  return true;
 }
 
