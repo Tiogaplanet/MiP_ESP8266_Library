@@ -516,6 +516,7 @@ public:
 
 protected:
     void    clear();
+    int8_t  attemptMiPConnection(uint32_t baudRate);
 
     void    connect();
 
@@ -575,8 +576,6 @@ protected:
     void    processOobResponseData(uint8_t commandByte);
     uint8_t discardUnexpectedSerialData();
 
-    void    connectAttempt();
-    
     // Bits that can be set in m_flags bitfield.
     enum FlagBits
     {
