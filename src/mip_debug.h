@@ -41,7 +41,7 @@ bool system_update_cpu_freq(uint8 freq);
 
 // Maximum time for inactivity (in milliseconds). Comment this line to disable the timeout interval.
 // Default: 10 minutes
-#define MAX_TIME_INACTIVE 600000
+//#define MAX_TIME_INACTIVE 600000
 
 // Defines the buffer size for buffered output.
 #define BUFFER_PRINT 150
