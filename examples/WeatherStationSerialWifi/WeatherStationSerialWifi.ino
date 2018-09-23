@@ -82,7 +82,7 @@ void setup() {
 
 void loop() {
   ArduinoOTA.handle();
-  
+
   // Now, get the weather every 15 minutes.
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {

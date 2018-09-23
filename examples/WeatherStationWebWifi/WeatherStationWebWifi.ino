@@ -100,7 +100,7 @@ void setup() {
 
 void loop() {
   ArduinoOTA.handle();
-  
+
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     updateWeather();
@@ -181,6 +181,7 @@ bool updateChestLED() {
   } else {
     return false;
   }
+
   return true;
 }
 
