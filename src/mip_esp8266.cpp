@@ -223,8 +223,8 @@ bool MiP::begin()
     m_lastRequestTime = millis() - MIP_REQUEST_DELAY;
     m_lastContinuousDriveTime = millis() - MIP_CONTINUOUS_DRIVE_DELAY;
 
-    // Assume that the connection to the MiP will be successfully initialized. Will clear the flag if a connection
-    // error is detected. If this wasn't done then the calls to rawSend() & rawGetStatus() below would fail.
+    // Assume that the connection to MiP will be successfully initialized. Will clear the flag if a connection
+    // error is detected. If this wasn't done then the calls to rawSend() and rawGetStatus() below would fail.
     m_flags |= MRI_FLAG_INITIALIZED;
 
     // Sometimes the init fails. It seems to happen when the MiP is busy at power-up doing other things like
@@ -232,63 +232,61 @@ bool MiP::begin()
     int8_t retry;
     for (retry = 0 ; retry < MIP_MAX_BEGIN_RETRIES ; retry++)
     {
-        // Early MiPs require the UART to communicate at 115200-N-8-1.
-        Serial.begin(MIP_FAST_BAUD_RATE);
+        int8_t result = -1;
 
-        connectAttempt();
-
-        // Attempt to get the MiP's latest status to see if the connection was successful or not.
-        int result = rawGetStatus(m_lastStatus);
+        // Try to connect at 115200 baud, the rate used by older MiPs.
+        result = attemptMiPConnection(MIP_FAST_BAUD_RATE);
         if (result == MIP_ERROR_NONE)
         {
-            // Connection must be successful since this request was successful.
-            Serial1.println(F("Connected at 115200."));
-            break;
-        } 
-        else
-        {
-            // If the above connectAttempt() was unsuccessful, try again at 9600-N-8-1.
-            Serial.end();
-            Serial.begin(MIP_SLOW_BAUD_RATE);
-            connectAttempt();
-            
-            result = rawGetStatus(m_lastStatus);
-            if (result == MIP_ERROR_NONE)
-            {
-                // Connection must be successful since this request was successful.
-                Serial1.println(F("Connected at 9600."));
-                break;
-            }
+            // Connection succeeded at 115200.
+            return true;
         }
-        // Sleep a bit before making the next attempt.
-        delay(MIP_BEGIN_RETRY_WAIT);
-    }
-    if (retry == MIP_MAX_BEGIN_RETRIES)
-    {
-        m_flags &= ~MRI_FLAG_INITIALIZED;
-        end();
-        return false;
+
+        // Try to connect at 9600 baud, the rate used by newer MiPs.
+        result = attemptMiPConnection(MIP_SLOW_BAUD_RATE);
+        if (result == MIP_ERROR_NONE)
+        {
+            // Connection succeeded at 9600.
+            return true;
+        }
     }
 
-    return true;
+    // Get here if the connection attempt to MiP never succeeds.
+    m_flags &= ~MRI_FLAG_INITIALIZED;
+    end();
+    return false;
 }
 
 // This internal protected method provides the common code for connection attempts at
 // baud rates of 115200 or 9600.
-void MiP::connectAttempt()
+int8_t MiP::attemptMiPConnection(uint32_t baudRate)
 {
+    // Set baud rate to specified rate.
+    Serial.begin(baudRate);
     Serial.swap();
-    Serial.setTimeout(MIP_RESPONSE_TIMEOUT);
-
+    
     // Send 0xFF to the MiP via UART to enable the UART communication channel in the MiP.
     const uint8_t initMipCommand[] = { 0xFF };
     rawSend(initMipCommand, sizeof(initMipCommand));
 
     // The MiP UART documentation indicates that this delay is required after sending 0xFF.
     delay(30);
-
     // Flush any outstanding junk data in receive buffer.
     discardUnexpectedSerialData();
+
+    // Attempt to get MiP's latest status to see if the connection was successful or not.
+    int8_t result = rawGetStatus(m_lastStatus);
+    if (result == MIP_ERROR_NONE)
+    {
+        // Let the user know at which baud rate the connection to MiP was made.
+        Serial1.printf("MiP: Connected at %d baud\n\r", baudRate);
+    }
+    else
+    {
+        // Sleep a bit before returning to code which will retry connection at alternate baud rate.
+        delay(MIP_BEGIN_RETRY_WAIT);
+    }
+    return result;
 }
 
 void MiP::end()
