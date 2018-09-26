@@ -32,7 +32,7 @@ String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394 and Charleston, South Carolina is 4574324.
-String OPEN_WEATHER_MAP_LOCATION_ID = "4574324";
+String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
 
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
 boolean IS_METRIC = false;
@@ -215,22 +215,114 @@ bool updateChestLED() {
 }
 
 void handleRoot() {
-  String htmlOutput = "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n";
-  htmlOutput += "<link rel=\"icon\" href=\"https://github.com/Tiogaplanet/Experimenting-with-the-MiP/raw/master/images/favicon.ico\">\n";
-  htmlOutput += "<title>MiP, the Weather Person</title>\n";
-  htmlOutput += "<style>\n";
-  htmlOutput += "body {background-color: powderblue;}\n";
-  htmlOutput += "h1   {color: blue; font-family: Arial, Helvetica, sans-serif; font-size: 110%;}\n";
-  htmlOutput += "p    {color: black; font-family: Arial, Helvetica, sans-serif;}\n";
-  htmlOutput += "</style>\n";
-  htmlOutput += "</head>\n<body>\n";
-  htmlOutput += "<div class=\"Weather\">\n";
-  htmlOutput += "<h1>Weather data courtesy of OpenWeatherMap</h1>\n";
-  htmlOutput += "<p>City: " + data.cityName + "<br>\n";
-  htmlOutput += "Country: " + data.country + "<br>\n";
+  // Send HTTP status 200 (Ok) and the page to the client.
+  //server.send(200, "text/html", htmlOutput);
+  server.send(200, "text/html", completePage());
+}
 
-  htmlOutput += "Longitude: " + String(data.lon) + "<br>\n";
-  htmlOutput += "Latitude: " + String(data.lat) + "<br>\n";
+void handleNotFound() {
+  // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
+  server.send(404, "text/plain", "404: Not found");
+}
+
+// Beyond here lies the HTML.
+//////////////////////////////////////////////////////////////////////////
+
+String completePage() {
+  String htmlOutput = "<!DOCTYPE html>\n<html>\n";
+  htmlOutput += htmlHead();
+  htmlOutput += htmlBody() ;
+  htmlOutput += "</html>\n";
+
+  return htmlOutput;
+}
+
+String htmlHead() {
+  String head = "<head>\n";
+
+  // TODO: Favicon should be the weather condition icon.
+  head += "<link rel=\"icon\" href=\"http://openweathermap.org/img/w/" + data.icon + ".png\">\n";
+
+  // Refresh every 15 minutes.
+  head += "<meta http-equiv=\"refresh\" content=\"900000\">\n";
+  head += " <meta charset=\"UTF-8\">\n";
+
+  head += "<style>\n";
+  head += "  html, body {height: 100%;}\n";
+  head += "  html {display: table; margin: auto;}\n";
+  head += "  body {background-color: ";
+  if (data.description == "clear sky") {
+    head += "#2572ed";
+  } else if (data.description == "few clouds") {
+    head += "#537bba";
+  } else if (data.description == "scattered clouds") {
+    head += "#5371a0";
+  } else if (data.description == "broken clouds") {
+    head += "#52698e";
+  } else if (data.description == "shower rain") {
+    head += "#4c5b72";
+  } else if (data.description == "rain") {
+    head += "#444d5b";
+  } else if (data.description == "thunderstorm") {
+    head += "#3d434c";
+  } else if (data.description == "snow") {
+    head += "#d5dce8";
+  } else if (data.description == "mist") {
+    head += "#bcbfc4";
+  }
+  head += "; display: table-cell; vertical-align: middle;}\n";
+  head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center;}\n";
+  head += "  h2 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 300%; text-align: center;}\n";
+  head += "  h3 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 110%; text-align: center;}\n";
+  head += "  hr {border-top: 1px solid #ffffff;}\n";
+  head += "  p {color: white; font-family: Arial, Helvetica, sans-serif;}\n";
+  head += "  .weather {border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
+  head += "  footer {color: #d26c22;}\n";
+  head += " </style>\n";
+
+  head += "<title>" + data.cityName + " Weather Conditions</title>\n";
+
+  head += " </head>\n";
+
+  return head;
+}
+
+String htmlBody() {
+  String body = "<body>\n";
+  body += "<p/>\n";
+  body += "<div class=\"weather\">\n";
+  body += htmlHeader();
+  body += htmlWeatherData();
+  body += htmlFooter();
+  body += "</div>\n";
+  body += "<p/>\n";
+  body += "</body>\n";
+
+  return body;
+}
+
+// The header shows just the city and the temperature.
+String htmlHeader() {
+  String header = "<header>\n";
+  header += "  <h1>" + data.cityName + "</h1> \n";
+  header += "  <h2>" + String(data.temp) + " &#176;</h2> \n";
+  header += "</header>\n";
+
+  return header;
+}
+
+// The footer contains the acknowledgement link to OpenWeatherMap.
+String htmlFooter() {
+  String footer = "<footer>\n";
+  footer += "  <a title=\"OpenWeatherMap\" href=\"https://openweathermap.org\"><img src=\"https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/logo_OpenWeatherMap_orange.svg\" alt=\"OpenWeatherMap logo\" height=\"20\"></a>\n";
+  footer += "</footer>\n";
+
+  return footer;
+}
+
+String htmlWeatherData() {
+  String htmlOutput = "<hr />";
+  htmlOutput += "<p>\n";
   time_t time = data.observationTime;
   htmlOutput += "Observation time: " + String(ctime(&time)) + "<br>\n";
   htmlOutput += "Weather ID: " + String(data.weatherId) + "<br>\n";
@@ -250,26 +342,23 @@ void handleRoot() {
   htmlOutput += "Sunrise: " + String(ctime(&time)) + "<br>\n";
   time = data.sunset;
   htmlOutput += "Sunset: " + String(ctime(&time)) + "<br>\n";
-  htmlOutput += "</p>\n</div>\n";
+  htmlOutput += "</p>\n";
+  htmlOutput += "<hr />";
 
   // Show the RGB values for the chest LED.
-  htmlOutput += "<div class=\"Chest LED\">\n";
-  htmlOutput += "<h1>Chest LED</h1>\n";
-  htmlOutput += "<p>\n";
+  htmlOutput += "<h3>MiP";
   if (extinguished) {
-    htmlOutput += "MiP is muted.<br>\n";
+    htmlOutput += " is muted";
   }
-  htmlOutput += "Red: " + String(red) + "<br>\n";
-  htmlOutput += "Green: " + String(green) + "<br>\n";
-  htmlOutput += "Blue: " + String(blue) + "<br>\n";
-  htmlOutput += "</p>\n</div>\n</body>\n</html>\n";
-
-  // Send HTTP status 200 (Ok) and the page to the client.
-  server.send(200, "text/html", htmlOutput);
-}
-
-void handleNotFound() {
-  // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
-  server.send(404, "text/plain", "404: Not found");
+  htmlOutput += "</h3>\n";
+  if (!extinguished) {
+    htmlOutput += "<p>\nRed: " + String(red) + "<br>\n";
+    htmlOutput += "Green: " + String(green) + "<br>\n";
+    htmlOutput += "Blue: " + String(blue) + "<br>\n";
+  }
+  htmlOutput += "</p>\n";
+  htmlOutput += "<hr />";
+  
+  return htmlOutput;
 }
 
