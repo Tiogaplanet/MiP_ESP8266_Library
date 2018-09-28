@@ -244,7 +244,7 @@ String htmlHead() {
   head += "<link rel=\"icon\" href=\"http://openweathermap.org/img/w/" + data.icon + ".png\">\n";
 
   // Refresh every 15 minutes.
-  head += "<meta http-equiv=\"refresh\" content=\"900000\">\n";
+  head += "<meta http-equiv=\"refresh\" content=\"900\">\n";
   head += " <meta charset=\"UTF-8\">\n";
 
   head += "<style>\n";
@@ -270,14 +270,16 @@ String htmlHead() {
   } else if (data.description == "mist") {
     head += "#bcbfc4";
   }
-  head += "; display: table-cell; vertical-align: middle;}\n";
-  head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center;}\n";
-  head += "  h2 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 300%; text-align: center;}\n";
-  head += "  h3 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 110%; text-align: center;}\n";
-  head += "  hr {border-top: 1px solid #ffffff;}\n";
+  head += "; display: table-cell;}\n"; // vertical-align: middle;
+  head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center; line-height: 5px;}\n";
+  head += "  h2 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 300%; text-align: center; line-height: 5px;}\n";
+  head += "  h3 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 110%; text-align: center; line-height: 5px;}\n";
+  head += "  h4 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 100%; text-align: center; line-height: 5px;}\n";
+  head += "  hr {border-top: 1px solid white;}\n";
   head += "  p {color: white; font-family: Arial, Helvetica, sans-serif;}\n";
-  head += "  .weather {border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
-  head += "  footer {color: #d26c22;}\n";
+  head += "  .weather {border:1px solid white; border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
+  head += "  canvas {padding-left: 0; padding-right: 0; margin-left: auto; margin-right: auto; display: block;}\n";
+  head += "  footer {color: #d26c22; text-align: center;}\n";
   head += " </style>\n";
 
   head += "<title>" + data.cityName + " Weather Conditions</title>\n";
@@ -305,7 +307,8 @@ String htmlBody() {
 String htmlHeader() {
   String header = "<header>\n";
   header += "  <h1>" + data.cityName + "</h1> \n";
-  header += "  <h2>" + String(data.temp) + " &#176;</h2> \n";
+  header += "<h4>" + data.main + "</h4>\n";
+  header += "  <h2>" + String(round(data.temp)) + "&#176;</h2> \n";
   header += "</header>\n";
 
   return header;
@@ -326,18 +329,16 @@ String htmlWeatherData() {
   time_t time = data.observationTime;
   htmlOutput += "Observation time: " + String(ctime(&time)) + "<br>\n";
   htmlOutput += "Weather ID: " + String(data.weatherId) + "<br>\n";
-  htmlOutput += "Main: " + data.main + "<br>\n";
   htmlOutput += "Description: " + data.description + "<br>\n";
-  htmlOutput += "Icon: " + data.icon + "<br>\n";
   htmlOutput += "IconMeteoCon: " + data.iconMeteoCon + "<br>\n";
-  htmlOutput += "Temperature: " + String(data.temp) + "<br>\n";
-  htmlOutput += "Pressure: " + String(data.pressure) + "<br>\n";
-  htmlOutput += "Humidity: " + String(data.humidity) + "<br>\n";
-  htmlOutput += "Temperature minimum: " + String(data.tempMin) + "<br>\n";
-  htmlOutput += "Temperature maximum: " + String(data.tempMax) + "<br>\n";
-  htmlOutput += "Wind speed: " + String(data.windSpeed) + "<br>\n";
+  htmlOutput += "Temperature: " + String(round(data.temp)) + "&#176;<br>\n";
+  htmlOutput += "Pressure: " + String(data.pressure) + " hPa<br>\n";
+  htmlOutput += "Humidity: " + String(data.humidity) + "&#37;<br>\n";
+  htmlOutput += "Temperature minimum: " + String(round(data.tempMin)) + "&#176;<br>\n";
+  htmlOutput += "Temperature maximum: " + String(round(data.tempMax)) + "&#176;<br>\n";
+  htmlOutput += "Wind speed: " + String(data.windSpeed) + " mph<br>\n";
   htmlOutput += "Wind degrees: " + String(data.windDeg) + "<br>\n";
-  htmlOutput += "Clouds: " + String(data.clouds) + "<br>\n";
+  htmlOutput += "Clouds: " + String(data.clouds) + "&#37;<br>\n";
   time = data.sunrise;
   htmlOutput += "Sunrise: " + String(ctime(&time)) + "<br>\n";
   time = data.sunset;
@@ -352,13 +353,63 @@ String htmlWeatherData() {
   }
   htmlOutput += "</h3>\n";
   if (!extinguished) {
+    htmlOutput += chestHTML(red, green, blue);
+    /*
     htmlOutput += "<p>\nRed: " + String(red) + "<br>\n";
     htmlOutput += "Green: " + String(green) + "<br>\n";
     htmlOutput += "Blue: " + String(blue) + "<br>\n";
+    */
   }
   htmlOutput += "</p>\n";
   htmlOutput += "<hr />";
-  
+
   return htmlOutput;
+}
+
+String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t blueHTML) {
+  String chestHTML = "<canvas id=\"imageView\" width=\"64\" height=\"64\"></canvas>\n";
+
+  chestHTML += "<script type=\"text/javascript\">\n";
+  chestHTML += "var canvas, context, canvaso, contexto;\n";
+  chestHTML += "canvaso = document.getElementById('imageView');\n";
+  chestHTML += "context = canvaso.getContext('2d');\n";
+
+  chestHTML += "context.rect(0, 0, 64, 64);\n";
+  chestHTML += "context.fillStyle=\"white\";\n";
+  chestHTML += "context.fill();\n";
+
+  chestHTML += "context.strokeStyle = '#a1a2a3';\n";
+  chestHTML += "context.save();\n";
+  chestHTML += "context.translate(32, 32);\n";
+  chestHTML += "context.scale(0.6363636363636364, 1);\n";
+  chestHTML += "context.beginPath();\n";
+  chestHTML += "context.arc(0, 0, 37, 0, 6.283185307179586, false);\n";
+  chestHTML += "context.fillStyle = '#";
+  char rgbValue[6];
+  sprintf(rgbValue, "%02X%02X%02X", redHTML, greenHTML, blueHTML);
+  chestHTML += rgbValue;
+  chestHTML += "';\n";
+  chestHTML += "context.fill();\n";
+  chestHTML += "context.stroke();\n";
+  chestHTML += "context.closePath();\n";
+  chestHTML += "context.restore();\n";
+
+  chestHTML += "context.strokeStyle = '#000000';\n";
+  chestHTML += "context.beginPath();\n";
+  chestHTML += "context.moveTo(0, 32);\n";
+  chestHTML += "context.lineTo(9, 32);\n";
+  chestHTML += "context.lineWidth=5;\n";
+  chestHTML += "context.stroke();\n";
+  chestHTML += "context.closePath();\n";
+
+  chestHTML += "context.strokeStyle = '#000000';\n";
+  chestHTML += "context.beginPath();\n";
+  chestHTML += "context.moveTo(55, 32);\n";
+  chestHTML += "context.lineTo(64, 32);\n";
+  chestHTML += "context.stroke();\n";
+  chestHTML += "context.closePath();\n";
+  chestHTML += "</script>\n";
+
+  return chestHTML;
 }
 
