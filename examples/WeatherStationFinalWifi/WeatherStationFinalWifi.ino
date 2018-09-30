@@ -22,21 +22,6 @@
 // Include the WebServer library.
 #include <ESP8266WebServer.h>
 
-// Initiate the client for the OpenWeatherMap API.
-OpenWeatherMapCurrent client;
-
-// Provide your OpenWeatherMap API key.  See
-// https://docs.thingpulse.com/how-tos/openweathermap-key/
-// for more information.
-String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
-
-// Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
-// is 3172394 and Charleston, South Carolina is 4574324.
-String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
-
-String OPEN_WEATHER_MAP_LANGUAGE = "en";
-boolean IS_METRIC = false;
-
 // Enter the SSID for your wifi network.
 char* ssid = "..............";
 
@@ -70,6 +55,21 @@ uint8_t frustrationLevel = 0;
 const uint8_t frustrationThreshold = 4;
 
 // The rest of these variables are for the weather station features.
+
+// Initiate the client for the OpenWeatherMap API.
+OpenWeatherMapCurrent client;
+
+// Provide your OpenWeatherMap API key.  See
+// https://docs.thingpulse.com/how-tos/openweathermap-key/
+// for more information.
+String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
+
+// Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
+// is 3172394 and Charleston, South Carolina is 4574324.
+String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+
+String OPEN_WEATHER_MAP_LANGUAGE = "en";
+boolean IS_METRIC = false;
 
 // Store the last time OpenWeatherMap was queried.
 unsigned long previousMillis = 0;
@@ -301,7 +301,7 @@ void frustration() {
   mip.addEntryToSoundList(MIP_SOUND_VOLUME_OFF, 0);
   mip.playSoundList(0);
 
-  // Flash the eyes agrily.
+  // Flash the eyes angrily.
   MiPHeadLEDs headLEDs;
   headLEDs.led2 = headLEDs.led3 = MIP_HEAD_LED_BLINK_FAST;
   headLEDs.led1 = headLEDs.led4 = MIP_HEAD_LED_BLINK_SLOW;
@@ -531,11 +531,6 @@ String htmlWeatherData() {
   htmlOutput += "</h3>\n";
   if (!extinguished) {
     htmlOutput += chestHTML(red, green, blue);
-    /*
-      htmlOutput += "<p>\nRed: " + String(red) + "<br>\n";
-      htmlOutput += "Green: " + String(green) + "<br>\n";
-      htmlOutput += "Blue: " + String(blue) + "<br>\n";
-    */
   }
   htmlOutput += "</p>\n";
   htmlOutput += "<hr />";
