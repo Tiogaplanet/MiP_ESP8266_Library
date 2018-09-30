@@ -53,38 +53,56 @@ bool        connectResult;                    // Test whether a connection to Mi
 uint8_t red, green, blue = 0;
 bool chestValuesWritten = false;
 
+// Don't update the eyes if they're already solid.
+bool lastUpdatedToSolid = false;
+bool extinguished = false;
+
+// Track MiP's position.  MiP roams while upright and reports the weather when on the kickstand.
+MiPPosition lastPosition = (MiPPosition) - 1;
+
+// While MiP is roaming, he may get frustrated by too many obstacles.  This is the interval in which MiP calms down.
+const long cooldownInterval = 60000;
+
+// Each obstruction within the cool down period increases MiP's frustration.
+uint8_t frustrationLevel = 0;
+
+// The number of obstructions MiP can tolerate within the cool down period before expressing frustration.
+const uint8_t frustrationThreshold = 4;
+
+// The rest of these variables are for the weather station features.
+
 // Store the last time OpenWeatherMap was queried.
 unsigned long previousMillis = 0;
 
-// Update every 15 minutes (900000 milliseconds).
+// Retrieve weather data every 15 minutes (900000 milliseconds).
 const long interval = 900000;
 
 // A place to store the data retrieved from OpenWeatherMap.
 OpenWeatherMapCurrentData data;
 
-// Don't update the eyes if they're already solid.
-bool lastUpdatedToSolid = false;
-bool extinguished = false;
-
-// Set web server port number to 80.
+// Set the web server port number to 80.
 ESP8266WebServer server(80);
 
 // Variable in which to store the HTTP request.
 String header;
 
-// function prototypes for HTTP handlers.
+// Function prototypes for HTTP handlers.
 void handleRoot();
 void handleNotFound();
 
+
 void setup() {
+  // Establish the WiFi connection.
   connectResult = mip.begin(ssid, password, hostname);
 
+  // Connect the esp8266 to MiP.
   if (!connectResult) {
     Serial1.println(F("Failed connecting to MiP."));
     return;
   }
 
-  // We'll need a random number generator to animate the eyes in conditions of rain.
+  // We'll need a random number generator for a few things such as animating the eyes in conditions of rain
+  // and choosing random sounds.
   randomSeed(analogRead(A0));
 
   // Call the 'handleRoot' function when a client requests URI "/".
@@ -96,37 +114,19 @@ void setup() {
   // Start the web server.
   server.begin();
 
-  updateWeather();
-  mip.writeClapDelay(501);
+  // We'll be able to turn MiP's eyes and chest on and off with a single clap while on the kickstand and reporting the weather.
   mip.enableClapEvents();
+
+  // Do the initial read of the weather.
+  updateWeather();
 }
 
+
 void loop() {
+  // Handle OTA updates.
   ArduinoOTA.handle();
 
-  while (mip.availableClapEvents() > 0) {
-    uint8_t clapCount = mip.readClapEvent();
-    if (clapCount == 1 && extinguished == false) {
-      Serial1.println(F("Switching off."));
-      mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
-      mip.writeChestLED(0, 0, 0);
-      extinguished = true;
-    } else if (extinguished == true) {
-      Serial1.println(F("Switching on."));
-      extinguished = false;
-      // Animate the eyes to indicate rain.
-      if (data.description.indexOf("rain") > 0) {
-        mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
-        lastUpdatedToSolid = false;
-      } else {
-        mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
-        lastUpdatedToSolid = true;
-      }
-      // Turn on the chest LED.
-      chestValuesWritten = updateChestLED();
-    }
-  }
-
+  // This block of code pulls data from OpenWeatherMap.org every 15 minutes regardless of MiP's position.
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     updateWeather();
@@ -134,29 +134,207 @@ void loop() {
     previousMillis = currentMillis;
   }
 
-  if (!extinguished) {
-    // Animate the eyes to indicate rain.
-    if (data.description.indexOf("rain") > 0) {
-      mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
-      lastUpdatedToSolid = false;
-    } else if (!lastUpdatedToSolid) {
-      mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
-      lastUpdatedToSolid = true;
+  MiPPosition        currentPosition = mip.readPosition();
+
+  if (currentPosition != lastPosition) {
+    if (mip.isOnBack()) {
+      Serial1.println(F("Position: On Back"));
+      // Make a random sound and flash the chest LED.
+      randomFall();
+    }
+    if (mip.isFaceDown()) {
+      Serial1.println(F("Position: Face Down"));
+      // Make a random sound and flash the chest LED.
+      randomFall();
+    }
+    if (mip.isUpright()) {
+      Serial1.println(F("Position: Upright"));
+      // Make MiP ready to roam.
+      mip.writeChestLED(0x00, 0xFF, 0x00);
+      mip.enableRadarMode();
+    }
+    if (mip.isPickedUp()) {
+      Serial1.println(F("Position: Picked Up"));
+      // Stop the wheels from spinning freely and make a noise.
+      mip.stop();
+      mip.playSound(MIP_SOUND_MIP_WHOAH, MIP_VOLUME_1);
+    }
+    if (mip.isHandStanding()) {
+      Serial1.println(F("Position: Hand Stand"));
+      // No special handling for this position.
+    }
+    if (mip.isFaceDownOnTray()) {
+      Serial1.println(F("Position: Face Down on Tray"));
+      // Make a random sound and flash the chest LED.
+      randomFall();
+    }
+    if (mip.isOnBackWithKickstand()) {
+      Serial1.println(F("Position: On Back With Kickstand"));
+      // Make MiP ready to report the weather.  Don't forget to plug MiP in at this point.
+      mip.stop();
+      mip.disableRadarMode();
+      mip.writeChestLED(red, green, blue);
     }
 
-    // Don't update the eyes too fast or you'll get MiP timeout errors.
-    delay(800);
-
-    // Update the chest LED if it hasn't been done in the last 15 minutes.
-    if (!chestValuesWritten) {
-      chestValuesWritten = updateChestLED();
-    }
+    lastPosition = currentPosition;
   }
 
+  // MiP is on his kickstand - start reporting the weather.
+  if (mip.isOnBackWithKickstand()) {
+    while (mip.availableClapEvents() > 0) {
+      uint8_t clapCount = mip.readClapEvent();
+      if (clapCount == 1 && extinguished == false) {
+        Serial1.println(F("Switching off."));
+        mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
+        mip.writeChestLED(0, 0, 0);
+        extinguished = true;
+      } else if (extinguished == true) {
+        Serial1.println(F("Switching on."));
+        extinguished = false;
+        // Animate the eyes to indicate rain.
+        if (data.description.indexOf("rain") > 0) {
+          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          lastUpdatedToSolid = false;
+        } else {
+          mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
+          lastUpdatedToSolid = true;
+        }
+        // Turn on the chest LED.
+        chestValuesWritten = updateChestLED();
+      }
+    }
+
+    if (!extinguished) {
+      // Animate the eyes to indicate rain.
+      if (data.description.indexOf("rain") > 0) {
+        mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+        lastUpdatedToSolid = false;
+      } else if (!lastUpdatedToSolid) {
+        mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
+        lastUpdatedToSolid = true;
+      }
+
+      // Don't update the eyes too fast or you'll get MiP timeout errors.
+      delay(800);
+
+      // Update the chest LED if it hasn't been done in the last 15 minutes.
+      if (!chestValuesWritten) {
+        chestValuesWritten = updateChestLED();
+      }
+    }
+  } else if (mip.isUpright()) { // MiP is upright - roam freely.
+    // Call the frustration mode.
+    frustrationMode();
+  }
 
   // Listen for HTTP requests from clients.
   server.handleClient();
 }
+
+// Play a randomly selected sound when MiP falls.
+void randomFall() {
+  MiPSoundIndex fallSounds[6] = { MIP_SOUND_MIP_HURT, MIP_SOUND_MIP_GRUNT_1, MIP_SOUND_MIP_GRUNT_2, MIP_SOUND_MIP_GRUNT_3, MIP_SOUND_MIP_OUCH_1, MIP_SOUND_MIP_OUCH_2 };
+  mip.playSound(fallSounds[rand() % 6], MIP_VOLUME_1);
+  mip.writeChestLED(0xFF, 0x00, 0x00, 990, 980);
+}
+
+// A variation on my first sketch for MiP.  MiP will roam, and after encountering a defined number of near obstacles within a defined interval,
+// MiP shows frustration.
+void frustrationMode() {
+
+  // Start driving.
+  mip.continuousDrive(16, 0);
+
+  static MiPRadar lastRadar = MIP_RADAR_INVALID;
+  MiPRadar        currentRadar = mip.readRadar();
+
+  unsigned long currentMillis = millis();
+
+  if (currentRadar != MIP_RADAR_INVALID && lastRadar != currentRadar)
+  {
+    switch (currentRadar)
+    {
+      case MIP_RADAR_NONE:
+        // No obstruction, continue on happily.
+        break;
+      case MIP_RADAR_10CM_30CM:
+        // Distant obstruction detected, take evasive maneuvers.
+        randomEvasion();
+        mip.continuousDrive(16, 0);
+        break;
+      case MIP_RADAR_0CM_10CM:
+        // Near obstruction detected, reset the cool down clock and increase frustration level.
+        previousMillis = currentMillis;
+        frustrationLevel++;
+        if (frustrationLevel != frustrationThreshold) {
+          randomEvasion();
+          mip.continuousDrive(16, 0);
+        }
+        break;
+      default:
+        break;
+    }
+    lastRadar = currentRadar;
+  }
+
+  // This is it.  If MiP has exceeded its frustration threshold, have a good ol' tantrum and go back to normal.
+  if (frustrationLevel >= frustrationThreshold) {
+    frustration();
+    previousMillis = currentMillis;
+    frustrationLevel = 0;
+  } else if (currentMillis - previousMillis >= cooldownInterval) { // Otherwise, if MiP has avoided near obstacles for
+    previousMillis = currentMillis;                                // the last minute, reset the frustration level.
+    frustrationLevel = 0;
+  }
+}
+
+// This is the actual expression of frustration.
+void frustration() {
+
+  // Set the chest LED to red.
+  mip.writeChestLED(0xFF, 0x00, 0x00);
+
+  // Make an angry noise.
+  mip.beginSoundList();
+  mip.addEntryToSoundList(MIP_SOUND_VOLUME_4, 0);
+  mip.addEntryToSoundList(MIP_SOUND_MOOD_ANGRY, 1000);
+  mip.addEntryToSoundList(MIP_SOUND_VOLUME_OFF, 0);
+  mip.playSoundList(0);
+
+  // Flash the eyes agrily.
+  MiPHeadLEDs headLEDs;
+  headLEDs.led2 = headLEDs.led3 = MIP_HEAD_LED_BLINK_FAST;
+  headLEDs.led1 = headLEDs.led4 = MIP_HEAD_LED_BLINK_SLOW;
+  mip.writeHeadLEDs(headLEDs);
+
+  // Do three spins, each in a random direction for a random number of degrees at max speed, of course.
+  for (uint8_t i = 0; i < 3; i++) {
+    (random(0, 2)) ? mip.turnLeft(random(0, 1276), 24) : mip.turnRight(random(0, 1276), 24);
+    delay(1500);
+  }
+
+  // restore the eyes to normal.
+  headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
+  mip.writeHeadLEDs(headLEDs);
+
+  // Make "exhaustion" noise.
+  mip.beginSoundList();
+  mip.addEntryToSoundList(MIP_SOUND_VOLUME_4, 0);
+  mip.addEntryToSoundList(MIP_SOUND_ACTION_OUT_OF_BREATH, 0);
+  mip.addEntryToSoundList(MIP_SOUND_VOLUME_OFF, 0);
+  mip.playSoundList(0);
+
+  // Set the chest LED back to green and get on with life.
+  mip.writeChestLED(0x00, 0xFF, 0x00);
+}
+
+// randomly turn right or left to avoid obstructions while in roaming mode.
+void randomEvasion() {
+  (random(0, 2) == 0) ? mip.turnLeft(90, 12) : mip.turnRight(90, 12);
+  delay(500);
+}
+
+// The rest of these functions support the weather station features.
 
 // Read the weather from OpenWeatherMap.
 void updateWeather() {
@@ -214,20 +392,19 @@ bool updateChestLED() {
   return true;
 }
 
+// Handle calls from the web client to the web server.
 void handleRoot() {
   // Send HTTP status 200 (Ok) and the page to the client.
-  //server.send(200, "text/html", htmlOutput);
   server.send(200, "text/html", completePage());
 }
 
+// Handle "not found" calls from the web client to the web server.
 void handleNotFound() {
   // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
   server.send(404, "text/plain", "404: Not found");
 }
 
-// Beyond here lies the HTML.
-//////////////////////////////////////////////////////////////////////////
-
+// Beyond here lies the HTML served to the client from handleRoot().
 String completePage() {
   String htmlOutput = "<!DOCTYPE html>\n<html>\n";
   htmlOutput += htmlHead();
@@ -355,9 +532,9 @@ String htmlWeatherData() {
   if (!extinguished) {
     htmlOutput += chestHTML(red, green, blue);
     /*
-    htmlOutput += "<p>\nRed: " + String(red) + "<br>\n";
-    htmlOutput += "Green: " + String(green) + "<br>\n";
-    htmlOutput += "Blue: " + String(blue) + "<br>\n";
+      htmlOutput += "<p>\nRed: " + String(red) + "<br>\n";
+      htmlOutput += "Green: " + String(green) + "<br>\n";
+      htmlOutput += "Blue: " + String(blue) + "<br>\n";
     */
   }
   htmlOutput += "</p>\n";
