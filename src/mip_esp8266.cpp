@@ -12,7 +12,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-/* Implementation of MiP C API. */
+/* This is a port to the ESP8266 of Adam Green's original MiP C API.
+   Porting done by Samuel Trassare.
+*/
 #include "mip_esp8266.h"
 
 
@@ -189,7 +191,7 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
             type = "filesystem";
         }
         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-        Serial1.println("Start updating " + type);
+        Serial1.println("MiP: Start updating " + type);
         });
     ArduinoOTA.onEnd([]() {
         Serial1.println(F("\nEnd"));
@@ -208,6 +210,19 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
 
     ArduinoOTA.begin();
     Serial1.print(F("MiP: IP address: ")); Serial1.println(WiFi.localIP());
+
+    // Set up mDNS responder using the user-specified hostname and ending with ".local".
+    // For example, if the user provides the hostname "HappyMiP" the fully-qualified
+    // domain name is "HappyMiP.local".
+    if (!MDNS.begin(m_hostname)) {
+      Serial1.println(F("MiP: Error setting up mDNS responder."));
+    }
+    else
+    {
+      Serial1.print(F("MiP: mDNS responder started with hostname of "));
+      Serial1.print(m_hostname);
+      Serial1.println(F(".local"));
+    }
 
     return returnValue;
 }
