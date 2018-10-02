@@ -181,13 +181,17 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
     }
 
    
-    // Set up mDNS responder using the user-specified hostname.
+    // Set up mDNS responder using the user-specified hostname and ending with ".local".
+    // For example, if the user provides the hostname "HappyMiP" the fully-qualified 
+    // domain name is "HappyMiP.local".
     if (!MDNS.begin(m_hostname)) {
-      Serial1.println(F("MiP: Error setting up MDNS responder."));
+      Serial1.println(F("MiP: Error setting up mDNS responder."));
     } 
     else 
     {
-      Serial1.println(F("MiP: mDNS responder started."));
+      Serial1.print(F("MiP: mDNS responder started with hostname of "));
+      Serial1.print(m_hostname);
+      Serial1.println(F(".local"));
     }
 
     ArduinoOTA.onStart([]() {
