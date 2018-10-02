@@ -192,7 +192,7 @@ void loop() {
         Serial1.println(F("Switching on."));
         extinguished = false;
         // Animate the eyes to indicate rain.
-        if (data.description.indexOf("rain") > 0) {
+        if (data.description.indexOf("rain") >= 0) {
           mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           lastUpdatedToSolid = false;
         } else {
@@ -206,7 +206,7 @@ void loop() {
 
     if (!extinguished) {
       // Animate the eyes to indicate rain.
-      if (data.description.indexOf("rain") > 0) {
+      if (data.description.indexOf("rain") >= 0) {
         mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
         lastUpdatedToSolid = false;
       } else if (!lastUpdatedToSolid) {
@@ -417,7 +417,7 @@ String completePage() {
 String htmlHead() {
   String head = "<head>\n";
 
-  // TODO: Favicon should be the weather condition icon.
+  // Use the weather condition icon as the favicon.
   head += "<link rel=\"icon\" href=\"http://openweathermap.org/img/w/" + data.icon + ".png\">\n";
 
   // Refresh every 15 minutes.
@@ -428,23 +428,25 @@ String htmlHead() {
   head += "  html, body {height: 100%;}\n";
   head += "  html {display: table; margin: auto;}\n";
   head += "  body {background-color: ";
-  if (data.description == "clear sky") {
+  // Use the favicon to determine the appropriate background color.  It's easier than checking for the
+  // plain language weather description.
+  if (data.icon.indexOf("01") >= 0) {         // Clear sky.
     head += "#2572ed";
-  } else if (data.description == "few clouds") {
+  } else if (data.icon.indexOf("02") >= 0) {  // Few clouds.
     head += "#537bba";
-  } else if (data.description == "scattered clouds") {
+  } else if (data.icon.indexOf("03") >= 0) {  // Scattered clouds.
     head += "#5371a0";
-  } else if (data.description == "broken clouds") {
+  } else if (data.icon.indexOf("04") >= 0) {  // Broken clouds.
     head += "#52698e";
-  } else if (data.description == "shower rain") {
+  } else if (data.icon.indexOf("09") >= 0) {  // Shower rain.
     head += "#4c5b72";
-  } else if (data.description == "rain") {
+  } else if (data.icon.indexOf("10") >= 0) {  // Rain.
     head += "#444d5b";
-  } else if (data.description == "thunderstorm") {
+  } else if (data.icon.indexOf("11") >= 0) {  // Thunderstorm.
     head += "#3d434c";
-  } else if (data.description == "snow") {
+  } else if (data.icon.indexOf("13") >= 0) {  // Snow.
     head += "#d5dce8";
-  } else if (data.description == "mist") {
+  } else if (data.icon.indexOf("50") >= 0) {  // Mist.
     head += "#bcbfc4";
   }
   head += "; display: table-cell;}\n"; // vertical-align: middle;
