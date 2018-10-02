@@ -427,27 +427,27 @@ String htmlHead() {
   head += "<style>\n";
   head += "  html, body {height: 100%;}\n";
   head += "  html {display: table; margin: auto;}\n";
-  head += "  body {background-color: ";
+  head += "  body {background-color: #";
   // Use the favicon to determine the appropriate background color.  It's easier than checking for the
   // plain language weather description.
   if (data.icon.indexOf("01") >= 0) {         // Clear sky.
-    head += "#2572ed";
+    head += "065ce5";
   } else if (data.icon.indexOf("02") >= 0) {  // Few clouds.
-    head += "#537bba";
+    head += "2b64bf";
   } else if (data.icon.indexOf("03") >= 0) {  // Scattered clouds.
-    head += "#5371a0";
+    head += "3c6dbc";
   } else if (data.icon.indexOf("04") >= 0) {  // Broken clouds.
-    head += "#52698e";
+    head += "4c71ad";
   } else if (data.icon.indexOf("09") >= 0) {  // Shower rain.
-    head += "#4c5b72";
+    head += "4c6284";
   } else if (data.icon.indexOf("10") >= 0) {  // Rain.
-    head += "#444d5b";
+    head += "43536b";
   } else if (data.icon.indexOf("11") >= 0) {  // Thunderstorm.
-    head += "#3d434c";
+    head += "485260";
   } else if (data.icon.indexOf("13") >= 0) {  // Snow.
-    head += "#d5dce8";
+    head += "f9fafc";
   } else if (data.icon.indexOf("50") >= 0) {  // Mist.
-    head += "#bcbfc4";
+    head += "bbbdc1";
   }
   head += "; display: table-cell;}\n"; // vertical-align: middle;
   head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center; line-height: 5px;}\n";
