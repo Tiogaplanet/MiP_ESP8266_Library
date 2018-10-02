@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-/* This is a port to the ESP8266 of Adam Green's original MiP C API. 
+/* This is a port to the ESP8266 of Adam Green's original MiP C API.
    Porting done by Samuel Trassare.
 */
 #include "mip_esp8266.h"
@@ -180,20 +180,6 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
         ESP.restart();
     }
 
-   
-    // Set up mDNS responder using the user-specified hostname and ending with ".local".
-    // For example, if the user provides the hostname "HappyMiP" the fully-qualified 
-    // domain name is "HappyMiP.local".
-    if (!MDNS.begin(m_hostname)) {
-      Serial1.println(F("MiP: Error setting up mDNS responder."));
-    } 
-    else 
-    {
-      Serial1.print(F("MiP: mDNS responder started with hostname of "));
-      Serial1.print(m_hostname);
-      Serial1.println(F(".local"));
-    }
-
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH)
@@ -224,6 +210,19 @@ bool MiP::begin(char* ssid, char* password, char* hostname)
 
     ArduinoOTA.begin();
     Serial1.print(F("MiP: IP address: ")); Serial1.println(WiFi.localIP());
+
+    // Set up mDNS responder using the user-specified hostname and ending with ".local".
+    // For example, if the user provides the hostname "HappyMiP" the fully-qualified
+    // domain name is "HappyMiP.local".
+    if (!MDNS.begin(m_hostname)) {
+      Serial1.println(F("MiP: Error setting up mDNS responder."));
+    }
+    else
+    {
+      Serial1.print(F("MiP: mDNS responder started with hostname of "));
+      Serial1.print(m_hostname);
+      Serial1.println(F(".local"));
+    }
 
     return returnValue;
 }
