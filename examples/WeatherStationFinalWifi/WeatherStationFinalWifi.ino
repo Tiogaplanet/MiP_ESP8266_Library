@@ -33,7 +33,7 @@ char* password = "..............";
 // Provide your OpenWeatherMap API key.  See
 // https://docs.thingpulse.com/how-tos/openweathermap-key/
 // for more information.
-String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
+const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -41,7 +41,7 @@ String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394 and Charleston, South Carolina is 4574324.
-String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
 
 // Set any hostname you desire.
 char* hostname = "MiP-0x02";
@@ -195,6 +195,7 @@ void loop() {
         mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
         mip.writeChestLED(0, 0, 0);
         extinguished = true;
+        lastUpdatedToSolid = false;
         chestValuesWritten = false;
       } else if (clapCount == 1 && extinguished == true) {
         Serial1.println(F("Clap detected, switching on."));
@@ -206,7 +207,7 @@ void loop() {
       if (data.description.indexOf("rain") >= 0) { // Animate the eyes to indicate rain.
         // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesInterval.
         unsigned long eyesMillis = millis();
-        if (eyesMillis - previousEyesMillis >= eyeInterval) {
+        if (eyesMillis - previousEyesMillis >= eyesInterval) {
           mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           previousEyesMillis = eyesMillis;
         }
@@ -470,7 +471,6 @@ String htmlHead() {
   head += "  hr {border-top: 1px solid white;}\n";
   head += "  p {color: white; font-family: Arial, Helvetica, sans-serif;}\n";
   head += "  .weather {border-radius: 20px; background: rgba(0, 0, 0, .5); padding: 10px;}\n";
-//  head += "  .weather {border:1px solid white; border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
   head += "  canvas {padding-left: 0; padding-right: 0; margin-left: auto; margin-right: auto; display: block;}\n";
   head += "  footer {color: #d26c22; text-align: center;}\n";
   head += " </style>\n";
