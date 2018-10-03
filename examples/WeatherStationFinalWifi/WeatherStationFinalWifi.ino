@@ -62,6 +62,12 @@ bool chestValuesWritten = false;
 bool lastUpdatedToSolid = false;
 bool extinguished = false;
 
+// When animating the eyes, pause between each write to prevent MiP timeout errors.
+const long eyesInterval = 500;
+
+// Store the last time MiP's eyes were written to for animation.
+unsigned long previousEyesMillis = 0;
+
 // Track MiP's position.  MiP roams while upright and reports the weather when on the kickstand.
 MiPPosition lastPosition = (MiPPosition) - 1;
 
@@ -181,43 +187,36 @@ void loop() {
 
   // MiP is on his kickstand - start reporting the weather.
   if (mip.isOnBackWithKickstand()) {
+    // Listen for claps first.  If a clap is detected, toggle the boolean extinguished variable.
     while (mip.availableClapEvents() > 0) {
       uint8_t clapCount = mip.readClapEvent();
       if (clapCount == 1 && extinguished == false) {
-        Serial1.println(F("Switching off."));
+        Serial1.println(F("Clap detected, switching off."));
         mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
         mip.writeChestLED(0, 0, 0);
         extinguished = true;
-      } else if (extinguished == true) {
-        Serial1.println(F("Switching on."));
+        chestValuesWritten = false;
+      } else if (clapCount == 1 && extinguished == true) {
+        Serial1.println(F("Clap detected, switching on."));
         extinguished = false;
-        // Animate the eyes to indicate rain.
-        if (data.description.indexOf("rain") >= 0) {
-          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
-          lastUpdatedToSolid = false;
-        } else {
-          mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
-          lastUpdatedToSolid = true;
-        }
-        // Turn on the chest LED.
-        chestValuesWritten = updateChestLED();
       }
     }
 
     if (!extinguished) {
-      // Animate the eyes to indicate rain.
-      if (data.description.indexOf("rain") >= 0) {
-        mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+      if (data.description.indexOf("rain") >= 0) { // Animate the eyes to indicate rain.
+        // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesInterval.
+        unsigned long eyesMillis = millis();
+        if (eyesMillis - previousEyesMillis >= eyeInterval) {
+          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          previousEyesMillis = eyesMillis;
+        }
         lastUpdatedToSolid = false;
-      } else if (!lastUpdatedToSolid) {
+      } else if (!lastUpdatedToSolid) {            // If there is no rain, turn on the eyes without animation.
         mip.writeHeadLEDs(MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON, MIP_HEAD_LED_ON);
         lastUpdatedToSolid = true;
       }
 
-      // Don't update the eyes too fast or you'll get MiP timeout errors.
-      delay(800);
-
-      // Update the chest LED if it hasn't been done in the last 15 minutes.
+      // Update the chest LED.
       if (!chestValuesWritten) {
         chestValuesWritten = updateChestLED();
       }
