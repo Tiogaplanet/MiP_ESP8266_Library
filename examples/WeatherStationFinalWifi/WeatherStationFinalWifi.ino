@@ -439,23 +439,23 @@ String htmlHead() {
   // Use the weather condition icon to determine the appropriate background color.  It's easier than checking for the
   // plain language weather description.
   if (data.icon.indexOf("01") >= 0) {         // Clear sky.
-    head += "065ce5";
+    (data.icon.indexOf('d') >= 0) ? head += "065ce5" : head += "04398e";
   } else if (data.icon.indexOf("02") >= 0) {  // Few clouds.
-    head += "2b64bf";
+    (data.icon.indexOf('d') >= 0) ? head += "2b64bf" : head += "17376b";
   } else if (data.icon.indexOf("03") >= 0) {  // Scattered clouds.
-    head += "3c6dbc";
+    (data.icon.indexOf('d') >= 0) ? head += "3c6dbc" : head += "213e6d";
   } else if (data.icon.indexOf("04") >= 0) {  // Broken clouds.
-    head += "4c71ad";
+    (data.icon.indexOf('d') >= 0) ? head += "4c71ad" : head += "2f466d";
   } else if (data.icon.indexOf("09") >= 0) {  // Shower rain.
-    head += "4c6284";
+    (data.icon.indexOf('d') >= 0) ? head += "4c6284" : head += "384860";
   } else if (data.icon.indexOf("10") >= 0) {  // Rain.
-    head += "43536b";
+    (data.icon.indexOf('d') >= 0) ? head += "43536b" : head += "313d4f";
   } else if (data.icon.indexOf("11") >= 0) {  // Thunderstorm.
-    head += "485260";
+    (data.icon.indexOf('d') >= 0) ? head += "485260" : head += "333a44";
   } else if (data.icon.indexOf("13") >= 0) {  // Snow.
-    head += "f9fafc";
+    (data.icon.indexOf('d') >= 0) ? head += "f9fafc" : head += "666768";
   } else if (data.icon.indexOf("50") >= 0) {  // Mist.
-    head += "bbbdc1";
+    (data.icon.indexOf('d') >= 0) ? head += "bbbdc1" : head += "38393a";
   }
   head += "; display: table-cell;}\n"; // vertical-align: middle;
   head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center; line-height: 5px;}\n";
@@ -464,7 +464,8 @@ String htmlHead() {
   head += "  h4 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 100%; text-align: center; line-height: 5px;}\n";
   head += "  hr {border-top: 1px solid white;}\n";
   head += "  p {color: white; font-family: Arial, Helvetica, sans-serif;}\n";
-  head += "  .weather {border:1px solid white; border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
+  head += "  .weather {border-radius: 20px; background: rgba(0, 0, 0, .5); padding: 10px;}\n";
+//  head += "  .weather {border:1px solid white; border-radius: 20px; background-color: #2b76ef; padding: 10px;}\n";
   head += "  canvas {padding-left: 0; padding-right: 0; margin-left: auto; margin-right: auto; display: block;}\n";
   head += "  footer {color: #d26c22; text-align: center;}\n";
   head += " </style>\n";
