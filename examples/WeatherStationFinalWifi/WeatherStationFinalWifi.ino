@@ -436,7 +436,7 @@ String htmlHead() {
   head += "  html, body {height: 100%;}\n";
   head += "  html {display: table; margin: auto;}\n";
   head += "  body {background-color: #";
-  // Use the favicon to determine the appropriate background color.  It's easier than checking for the
+  // Use the weather condition icon to determine the appropriate background color.  It's easier than checking for the
   // plain language weather description.
   if (data.icon.indexOf("01") >= 0) {         // Clear sky.
     head += "065ce5";
