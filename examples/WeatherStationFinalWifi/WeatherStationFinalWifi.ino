@@ -22,15 +22,35 @@
 // Include the WebServer library.
 #include <ESP8266WebServer.h>
 
+// The following three variables must be configured by the user for the sketch to work. //////////////
+
 // Enter the SSID for your wifi network.
 char* ssid = "..............";
 
 // Enter your wifi password.
 char* password = "..............";
 
+// Provide your OpenWeatherMap API key.  See
+// https://docs.thingpulse.com/how-tos/openweathermap-key/
+// for more information.
+String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The following two variables can be configured to the user's preference. //////////////////////////
+
+// Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
+// is 3172394 and Charleston, South Carolina is 4574324.
+String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+
 // Set any hostname you desire.
 char* hostname = "MiP-0x02";
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// No other changes need to be made.
+
+// MiP variables.
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
 
@@ -45,31 +65,13 @@ bool extinguished = false;
 // Track MiP's position.  MiP roams while upright and reports the weather when on the kickstand.
 MiPPosition lastPosition = (MiPPosition) - 1;
 
-// While MiP is roaming, he may get frustrated by too many obstacles.  This is the interval in which MiP calms down.
-const long cooldownInterval = 60000;
-
-// Each obstruction within the cool down period increases MiP's frustration.
-uint8_t frustrationLevel = 0;
-
-// The number of obstructions MiP can tolerate within the cool down period before expressing frustration.
-const uint8_t frustrationThreshold = 4;
-
 // The rest of these variables are for the weather station features.
 
 // Initiate the client for the OpenWeatherMap API.
 OpenWeatherMapCurrent client;
 
-// Provide your OpenWeatherMap API key.  See
-// https://docs.thingpulse.com/how-tos/openweathermap-key/
-// for more information.
-String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
-
-// Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
-// is 3172394 and Charleston, South Carolina is 4574324.
-String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
-
-String OPEN_WEATHER_MAP_LANGUAGE = "en";
-boolean IS_METRIC = false;
+const String OPEN_WEATHER_MAP_LANGUAGE = "en";
+const boolean IS_METRIC = false;
 
 // Store the last time OpenWeatherMap was queried.
 unsigned long previousMillis = 0;
@@ -95,7 +97,7 @@ void setup() {
   // Establish the WiFi connection.
   connectResult = mip.begin(ssid, password, hostname);
 
-  // Connect the esp8266 to MiP.
+  // Connect the ESP8266 to MiP.
   if (!connectResult) {
     Serial1.println(F("Failed connecting to MiP."));
     return;
@@ -105,7 +107,7 @@ void setup() {
   // and choosing random sounds.
   randomSeed(analogRead(A0));
 
-  // Call the 'handleRoot' function when a client requests URI "/".
+  // Call the 'handleRoot' function when a client requests the URI "/".
   server.on("/", handleRoot);
 
   // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound."
@@ -149,9 +151,8 @@ void loop() {
     }
     if (mip.isUpright()) {
       Serial1.println(F("Position: Upright"));
-      // Make MiP ready to roam.
-      mip.writeChestLED(0x00, 0xFF, 0x00);
-      mip.enableRadarMode();
+      // Set MiP into a custom roaming mode.
+      customRoamMode();
     }
     if (mip.isPickedUp()) {
       Serial1.println(F("Position: Picked Up"));
@@ -175,7 +176,6 @@ void loop() {
       mip.disableRadarMode();
       mip.writeChestLED(red, green, blue);
     }
-
     lastPosition = currentPosition;
   }
 
@@ -222,9 +222,6 @@ void loop() {
         chestValuesWritten = updateChestLED();
       }
     }
-  } else if (mip.isUpright()) { // MiP is upright - roam freely.
-    // Call the frustration mode.
-    frustrationMode();
   }
 
   // Listen for HTTP requests from clients.
@@ -238,57 +235,69 @@ void randomFall() {
   mip.writeChestLED(0xFF, 0x00, 0x00, 990, 980);
 }
 
-// A variation on my first sketch for MiP.  MiP will roam, and after encountering a defined number of near obstacles within a defined interval,
-// MiP shows frustration.
-void frustrationMode() {
+// A variation on my first sketch for MiP.  MiP will roam and after encountering a defined number of near obstacles within a defined 
+// interval, MiP shows frustration.  This function has its own loop so the main loop will be blocked until customRoamMode() returns.
+void customRoamMode() {
+  mip.writeChestLED(0x00, 0xFF, 0x00);
+  mip.enableRadarMode();
+   
+  // While MiP is roaming, he may get frustrated by too many obstacles.  This is the interval in which MiP calms down.
+  const long cooldownInterval = 60000;
 
+  // Each obstruction within the cool down period increases MiP's frustration.
+  uint8_t frustrationLevel = 0;
+
+  // The number of obstructions MiP can tolerate within the cool down period before expressing frustration.
+  const uint8_t frustrationThreshold = 4;
+   
   // Start driving.
   mip.continuousDrive(16, 0);
 
-  static MiPRadar lastRadar = MIP_RADAR_INVALID;
-  MiPRadar        currentRadar = mip.readRadar();
+  MiPRadar lastRadar = MIP_RADAR_INVALID;
 
-  unsigned long currentMillis = millis();
+  // As soon as MiP changes position, return execution to the main loop.
+  while (mip.isUpright()) {
+     MiPRadar        currentRadar = mip.readRadar();
 
-  if (currentRadar != MIP_RADAR_INVALID && lastRadar != currentRadar)
-  {
-    switch (currentRadar)
-    {
-      case MIP_RADAR_NONE:
-        // No obstruction, continue on happily.
-        break;
-      case MIP_RADAR_10CM_30CM:
-        // Distant obstruction detected, take evasive maneuvers.
-        randomEvasion();
-        mip.continuousDrive(16, 0);
-        break;
-      case MIP_RADAR_0CM_10CM:
-        // Near obstruction detected, reset the cool down clock and increase frustration level.
-        previousMillis = currentMillis;
-        frustrationLevel++;
-        if (frustrationLevel != frustrationThreshold) {
-          randomEvasion();
-          mip.continuousDrive(16, 0);
-        }
-        break;
-      default:
-        break;
-    }
-    lastRadar = currentRadar;
-  }
+     unsigned long currentMillis = millis();
 
-  // This is it.  If MiP has exceeded its frustration threshold, have a good ol' tantrum and go back to normal.
-  if (frustrationLevel >= frustrationThreshold) {
-    frustration();
-    previousMillis = currentMillis;
-    frustrationLevel = 0;
-  } else if (currentMillis - previousMillis >= cooldownInterval) { // Otherwise, if MiP has avoided near obstacles for
-    previousMillis = currentMillis;                                // the last minute, reset the frustration level.
-    frustrationLevel = 0;
+     if (currentRadar != MIP_RADAR_INVALID && lastRadar != currentRadar) {
+       switch (currentRadar)
+       {
+         case MIP_RADAR_NONE:
+           // No obstruction, continue on happily.
+           break;
+         case MIP_RADAR_10CM_30CM:
+           // Distant obstruction detected, take evasive maneuvers.
+           randomEvasion();
+           mip.continuousDrive(16, 0);
+           break;
+         case MIP_RADAR_0CM_10CM:
+           // Near obstruction detected, reset the cool down clock and increase frustration level.
+           previousMillis = currentMillis;
+           frustrationLevel++;
+           if (frustrationLevel != frustrationThreshold) {
+             randomEvasion();
+             mip.continuousDrive(16, 0);
+           }
+           break;
+       }
+       lastRadar = currentRadar;
+     }
+
+     // This is it.  If MiP has exceeded its frustration threshold, have a good ol' tantrum and go back to normal.
+     if (frustrationLevel >= frustrationThreshold) {
+       frustration();
+       previousMillis = currentMillis;
+       frustrationLevel = 0;
+     } else if (currentMillis - previousMillis >= cooldownInterval) { // Otherwise, if MiP has avoided near obstacles for
+       previousMillis = currentMillis;                                // the last minute, reset the frustration level.
+       frustrationLevel = 0;
+     }
   }
 }
 
-// This is the actual expression of frustration.
+// This is the actual expression of frustration, called from customRoamMode().
 void frustration() {
 
   // Set the chest LED to red.
@@ -317,7 +326,7 @@ void frustration() {
   headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
   mip.writeHeadLEDs(headLEDs);
 
-  // Make "exhaustion" noise.
+  // Make an "exhaustion" noise.
   mip.beginSoundList();
   mip.addEntryToSoundList(MIP_SOUND_VOLUME_4, 0);
   mip.addEntryToSoundList(MIP_SOUND_ACTION_OUT_OF_BREATH, 0);
@@ -328,7 +337,7 @@ void frustration() {
   mip.writeChestLED(0x00, 0xFF, 0x00);
 }
 
-// randomly turn right or left to avoid obstructions while in roaming mode.
+// Randomly turn right or left to avoid obstructions while in the custom roaming mode.
 void randomEvasion() {
   (random(0, 2) == 0) ? mip.turnLeft(90, 12) : mip.turnRight(90, 12);
   delay(500);
@@ -468,6 +477,7 @@ String htmlHead() {
   return head;
 }
 
+// Bring together the major parts of the HTML body.
 String htmlBody() {
   String body = "<body>\n";
   body += "<p/>\n";
@@ -482,7 +492,7 @@ String htmlBody() {
   return body;
 }
 
-// The header shows just the city and the temperature.
+// The header shows just the city, main weather description and the temperature.
 String htmlHeader() {
   String header = "<header>\n";
   header += "  <h1>" + data.cityName + "</h1> \n";
@@ -502,6 +512,7 @@ String htmlFooter() {
   return footer;
 }
 
+// A nicely formatted HTML rendering of the weather data.
 String htmlWeatherData() {
   String htmlOutput = "<hr />";
   htmlOutput += "<p>\n";
@@ -540,6 +551,7 @@ String htmlWeatherData() {
   return htmlOutput;
 }
 
+// This is an HTML5 canvas object used to display the color of MiP's chest LED.
 String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t blueHTML) {
   String chestHTML = "<canvas id=\"imageView\" width=\"64\" height=\"64\"></canvas>\n";
 
@@ -586,4 +598,3 @@ String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t b
 
   return chestHTML;
 }
-
