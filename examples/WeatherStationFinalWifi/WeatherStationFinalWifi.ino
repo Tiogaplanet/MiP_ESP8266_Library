@@ -237,7 +237,9 @@ void randomFall() {
 // A variation on my first sketch for MiP.  MiP will roam and after encountering a defined number of near obstacles within a defined 
 // interval, MiP shows frustration.  This function has its own loop so the main loop will be blocked until customRoamMode() returns.
 void customRoamMode() {
-  mip.writeChestLED(0x00, 0xFF, 0x00);
+  // Set the chest LED to a violet color.
+  mip.writeChestLED(0xB6, 0x00, 0xFF);
+
   mip.enableRadarMode();
    
   // While MiP is roaming, he may get frustrated by too many obstacles.  This is the interval in which MiP calms down.
@@ -293,6 +295,9 @@ void customRoamMode() {
        previousMillis = currentMillis;                                // the last minute, reset the frustration level.
        frustrationLevel = 0;
      }
+     
+     // Listen for HTTP requests from clients while in roaming mode.
+     server.handleClient();
   }
 }
 
@@ -538,14 +543,15 @@ String htmlWeatherData() {
 
   // Show the RGB values for the chest LED.
   htmlOutput += "<h3>MiP";
-  if (extinguished) {
-    htmlOutput += " is muted";
+  if (mip.isUpright()) {
+    htmlOutput += " is roaming</h3>\n";
+    htmlOutput += chestHTML(0xB6, 0x00, 0xFF);
+  } else if (extinguished) {
+    htmlOutput += " is muted</h3>\n";
+  } else if (!extinguished) {
+     htmlOutput += "</h3>\n";
+     htmlOutput += chestHTML(red, green, blue);
   }
-  htmlOutput += "</h3>\n";
-  if (!extinguished) {
-    htmlOutput += chestHTML(red, green, blue);
-  }
-  htmlOutput += "</p>\n";
   htmlOutput += "<hr />";
 
   return htmlOutput;
