@@ -252,13 +252,13 @@ void customRoamMode() {
   // The number of obstructions MiP can tolerate within the cool down period before expressing frustration.
   const uint8_t frustrationThreshold = 4;
 
-  // Start driving.
-  mip.continuousDrive(16, 0);
-
   MiPRadar lastRadar = MIP_RADAR_INVALID;
 
   // As soon as MiP changes position, return execution to the main loop.
   while (mip.isUpright()) {
+    // Start driving.
+    mip.continuousDrive(16, 0);
+
     MiPRadar        currentRadar = mip.readRadar();
 
     unsigned long currentMillis = millis();
@@ -338,8 +338,8 @@ void frustration() {
   mip.addEntryToSoundList(MIP_SOUND_VOLUME_OFF, 0);
   mip.playSoundList(0);
 
-  // Set the chest LED back to green and get on with life.
-  mip.writeChestLED(0x00, 0xFF, 0x00);
+  // Set the chest LED back to violet and get on with life.
+  mip.writeChestLED(0xB6, 0x00, 0xFF);
 }
 
 // Randomly turn right or left to avoid obstructions while in the custom roaming mode.
