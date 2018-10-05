@@ -40,8 +40,8 @@ const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 // The following two variables can be configured to the user's preference. //////////////////////////
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
-// is 3172394 and Charleston, South Carolina is 4574324.
-const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+// is 3172394. Charleston, South Carolina is 4574324. Newcastle upon Tyne, GB is 2641673.
+const String OPEN_WEATHER_MAP_LOCATION_ID = "2641673";
 
 // Set any hostname you desire.
 char* hostname = "MiP-0x01";
@@ -352,9 +352,11 @@ void randomEvasion() {
 
 // Read the weather from OpenWeatherMap.
 void updateWeather() {
-  client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-  client.setMetric(IS_METRIC);
-  client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+  while (data.cityName.length() == 0) {
+    client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+    client.setMetric(IS_METRIC);
+    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+  }
 }
 
 // Set MiP's chest to indicate the current temperature using the algorithm, not the values, from:
@@ -439,8 +441,6 @@ String htmlHead() {
   head += " <meta charset=\"UTF-8\">\n";
 
   head += "<style>\n";
-  head += "  html, body {height: 100%;}\n";
-  head += "  html {display: table; margin: auto;}\n";
   head += "  body {background-color: #";
   // Use the weather condition icon to determine the appropriate background color.  It's easier than checking for the
   // plain language weather description.
@@ -463,14 +463,16 @@ String htmlHead() {
   } else if (data.icon.indexOf("50") >= 0) {  // Mist.
     (data.icon.indexOf('d') >= 0) ? head += "bbbdc1" : head += "38393a";
   }
-  head += "; display: table-cell;}\n"; // vertical-align: middle;
+  head += ";}\n";
+  head += "  .navbar {overflow: hidden; background-color: #333; position: fixed; top: 0; left: 0; width: 100%;}\n";
+  head += "  .menuclock { font-family: Arial, Helvetica, sans-serif; color: #ffffff; float: right; padding: 5px;}\n";
   head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center; line-height: 5px;}\n";
   head += "  h2 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 300%; text-align: center; line-height: 5px;}\n";
   head += "  h3 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 110%; text-align: center; line-height: 5px;}\n";
   head += "  h4 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 100%; text-align: center; line-height: 5px;}\n";
   head += "  hr {border-top: 1px solid white;}\n";
   head += "  p {color: white; font-family: Arial, Helvetica, sans-serif;}\n";
-  head += "  .weather {border-radius: 20px; background: rgba(0, 0, 0, .5); padding: 10px;}\n";
+  head += "  .weather {margin: 0 auto; max-width: 350px; margin-top: 50px; border-radius: 20px; background: rgba(0, 0, 0, .5); padding: 10px;}\n";
   head += "  canvas {padding-left: 0; padding-right: 0; margin-left: auto; margin-right: auto; display: block;}\n";
   head += "  footer {color: #d26c22; text-align: center;}\n";
   head += " </style>\n";
@@ -486,6 +488,7 @@ String htmlHead() {
 String htmlBody() {
   String body = "<body>\n";
   body += "<p/>\n";
+  body += htmlMenuBar();
   body += "<div class=\"weather\">\n";
   body += htmlHeader();
   body += htmlWeatherData();
@@ -495,6 +498,32 @@ String htmlBody() {
   body += "</body>\n";
 
   return body;
+}
+
+String htmlMenuBar() {
+  String htmlMenuBar = "<div class=\"navbar\">\n";
+
+  htmlMenuBar += "<div id=\"clockbox\" class=\"menuclock\"></div>\n";
+  htmlMenuBar += "<script type=\"text/javascript\">\n";
+  htmlMenuBar += "var tday=[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"];\n";
+  htmlMenuBar += "var tmonth=[\"January\",\"February\",\"March\",\"April\",\"May\",\"June\",\"July\",\"August\",\"September\",\"October\",\"November\",\"December\"];\n";
+
+  htmlMenuBar += "function GetClock(){\n";
+  htmlMenuBar += "var d=new Date();\n";
+  htmlMenuBar += "var nday=d.getDay(),nmonth=d.getMonth(),ndate=d.getDate(),nyear=d.getFullYear();\n";
+  htmlMenuBar += "var nhour=d.getHours(),nmin=d.getMinutes();\n";
+  htmlMenuBar += "if(nmin<=9) nmin=\"0\"+nmin\n";
+
+  htmlMenuBar += "var clocktext=\"\"+tday[nday]+\", \"+ndate+\" \"+tmonth[nmonth]+\", \"+nyear+\" \"+nhour+\":\"+nmin+\"\";\n";
+  htmlMenuBar += "document.getElementById('clockbox').innerHTML=clocktext;\n";
+  htmlMenuBar += "}\n";
+
+  htmlMenuBar += "GetClock();\n";
+  htmlMenuBar += "setInterval(GetClock,1000);\n";
+  htmlMenuBar += "</script>\n";
+  htmlMenuBar += "</div>\n";
+  
+  return htmlMenuBar;
 }
 
 // The header shows just the city, main weather description and the temperature.
