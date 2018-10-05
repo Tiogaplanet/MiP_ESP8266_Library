@@ -439,7 +439,8 @@ String htmlHead() {
   // Refresh every 15 minutes.
   head += "<meta http-equiv=\"refresh\" content=\"900\">\n";
   head += " <meta charset=\"UTF-8\">\n";
-
+  head += " <meta name=\"viewport\" content=\"user-scalable=no,width=device-width\" />\n";
+  
   head += "<style>\n";
   head += "  html, body {height: 100%;}\n";
   head += "  html {display: table; margin: auto;}\n";
@@ -606,3 +607,4 @@ String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t b
 
   return chestHTML;
 }
+
