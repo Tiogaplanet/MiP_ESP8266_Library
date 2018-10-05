@@ -352,9 +352,11 @@ void randomEvasion() {
 
 // Read the weather from OpenWeatherMap.
 void updateWeather() {
-  client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-  client.setMetric(IS_METRIC);
-  client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+  while (data.cityName.length() == 0) {
+    client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+    client.setMetric(IS_METRIC);
+    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+  }
 }
 
 // Set MiP's chest to indicate the current temperature using the algorithm, not the values, from:
