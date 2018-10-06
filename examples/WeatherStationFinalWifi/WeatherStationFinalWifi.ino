@@ -18,6 +18,7 @@
 #include <JsonListener.h>
 #include <time.h>
 #include "OpenWeatherMapCurrent.h"
+#include "FS.h"
 
 // Include the WebServer library.
 #include <ESP8266WebServer.h>
@@ -35,13 +36,14 @@ char* password = "..............";
 // for more information.
 const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The following two variables can be configured to the user's preference. //////////////////////////
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394. Charleston, South Carolina is 4574324. Newcastle upon Tyne, GB is 2641673.
-const String OPEN_WEATHER_MAP_LOCATION_ID = "2641673";
+const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
 
 // Set any hostname you desire.
 char* hostname = "MiP-0x01";
@@ -79,6 +81,9 @@ OpenWeatherMapCurrent client;
 const String OPEN_WEATHER_MAP_LANGUAGE = "en";
 const boolean IS_METRIC = false;
 
+// Read the location code from SPIFFS
+String locationLine;
+
 // Store the last time OpenWeatherMap was queried.
 unsigned long previousMillis = 0;
 
@@ -97,6 +102,7 @@ String header;
 // Function prototypes for HTTP handlers.
 void handleRoot();
 void handleNotFound();
+void handleFormSubmit();
 
 
 void setup() {
@@ -116,6 +122,9 @@ void setup() {
   // Call the 'handleRoot' function when a client requests the URI "/".
   server.on("/", handleRoot);
 
+  // Call the 'handleFormSubmit' function when a client submits the search form.
+  server.on("/search.html", handleFormSubmit);
+
   // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound."
   server.onNotFound(handleNotFound);
 
@@ -125,10 +134,19 @@ void setup() {
   // We'll be able to turn MiP's eyes and chest on and off with a single clap while on the kickstand and reporting the weather.
   mip.enableClapEvents();
 
-  // Do the initial read of the weather.
-  updateWeather();
-}
+  SPIFFS.begin();
 
+  // Read the default weather location from SPIFFS.
+  locationLine = readLocation();
+  if (data.cityName.length() == 0) {
+    Serial1.println(F("Using default location."));
+    saveLocation(OPEN_WEATHER_MAP_LOCATION_ID);
+  }
+  locationLine = readLocation();
+
+  // Do the initial read of the weather.
+  updateWeather(locationLine);
+}
 
 void loop() {
   // Handle OTA updates.
@@ -137,7 +155,7 @@ void loop() {
   // This block of code pulls data from OpenWeatherMap.org every 15 minutes regardless of MiP's position.
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
-    updateWeather();
+    updateWeather(locationLine);
     chestValuesWritten = false;
     previousMillis = currentMillis;
   }
@@ -350,12 +368,31 @@ void randomEvasion() {
 
 // The rest of these functions support the weather station features.
 
+// Save the location from the search field to SPIFFS.
+void saveLocation(const String location) {
+  File saveFile = SPIFFS.open("/location.txt", "w");
+  saveFile.println(location);
+  saveFile.close();
+}
+
+// Read the saved location from SPIFFS.
+String readLocation() {
+  File saveFile = SPIFFS.open("/location.txt", "r");
+  String savedLocation = saveFile.readStringUntil('\n');
+  saveFile.close();
+
+  savedLocation.trim();
+
+  return savedLocation;
+}
+
 // Read the weather from OpenWeatherMap.
-void updateWeather() {
+void updateWeather(const String locationId) {
+  data.cityName = "";
   while (data.cityName.length() == 0) {
     client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
     client.setMetric(IS_METRIC);
-    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, locationId);
   }
 }
 
@@ -414,6 +451,24 @@ void handleRoot() {
   server.send(200, "text/html", completePage());
 }
 
+// Handle requests to search for and change the city.
+void handleFormSubmit() {
+  if (server.args() > 0 ) {
+    for ( uint8_t i = 0; i < server.args(); i++ ) {
+      if (server.argName(i) == "city") {
+        saveLocation(server.arg(i));
+        updateWeather(readLocation());
+        if (!extinguished) {
+          updateChestLED();
+        }
+      }
+    }
+  }
+
+  // Send HTTP status 200 (Ok) and the page to the client.
+  server.send(200, "text/html", completePage());
+}
+
 // Handle "not found" calls from the web client to the web server.
 void handleNotFound() {
   // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
@@ -464,8 +519,22 @@ String htmlHead() {
     (data.icon.indexOf('d') >= 0) ? head += "bbbdc1" : head += "38393a";
   }
   head += ";}\n";
-  head += "  .navbar {overflow: hidden; background-color: #333; position: fixed; top: 0; left: 0; width: 100%;}\n";
-  head += "  .menuclock { font-family: Arial, Helvetica, sans-serif; color: #ffffff; float: right; padding: 5px;}\n";
+
+  // Build a "navigation bar" ...
+  head += "  .navbar {overflow: hidden; background-color: #333; position: fixed; top: 0; left: 0; width: 100%; height: 40px; margin: auto; }\n";
+
+  // ...that contains a search box for other cities...
+  head += "  .search-box,.close-icon,.search-wrapper {position: relative; padding: 5px 5px;}\n";
+  head += "  .search-wrapper {width: 30%; float: left;}\n";
+  head += "  .search-box {width: 200px; border: 1px solid #ccc; outline: 0; border-radius: 15px;}\n";
+  head += "  .search-box:focus {box-shadow: 0 0 2px 2px #b0e0ee; border: 1px solid #bebede;}\n";
+  head += "  .close-icon {border:1px solid transparent; background-color: transparent; display: inline-block; vertical-align: middle; outline: 0; cursor: pointer;}\n";
+  head += "  .close-icon:after {content: \"X\"; display: block; width: 15px; height: 15px; position: absolute; background-color: #FA9595; z-index:1; right: 35px; top: 0; bottom: 0; margin: auto; padding: 2px; border-radius: 50%; text-align: center; color: white; font-weight: normal; font-size: 10px; box-shadow: 0 0 2px #E50F0F; cursor: pointer;}\n";
+  head += "  .search-box:not(:valid) ~ .close-icon { display: none;}\n";
+
+  // ...and conveniently displays the user's local time.
+  head += "  .menuclock {font-family: Arial, Helvetica, sans-serif; color: #ffffff; float: right; padding: 10px 5px; margin-left: 30%;}\n";
+
   head += "  h1 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 200%; text-align: center; line-height: 5px;}\n";
   head += "  h2 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 300%; text-align: center; line-height: 5px;}\n";
   head += "  h3 {color: white; font-family: Arial, Helvetica, sans-serif; font-size: 110%; text-align: center; line-height: 5px;}\n";
@@ -503,6 +572,13 @@ String htmlBody() {
 String htmlMenuBar() {
   String htmlMenuBar = "<div class=\"navbar\">\n";
 
+  htmlMenuBar += "<div class=\"search-wrapper\">\n";
+  htmlMenuBar += "  <form action=\"search.html\" method=\"post\">\n";
+  htmlMenuBar += "    <input type=\"text\" name=\"city\" required class=\"search-box\" placeholder=\"Your city\" />\n";
+  htmlMenuBar += "      <button class=\"close-icon\" type=\"reset\"></button>\n";
+  htmlMenuBar += "  </form>\n";
+  htmlMenuBar += "</div>\n";
+
   htmlMenuBar += "<div id=\"clockbox\" class=\"menuclock\"></div>\n";
   htmlMenuBar += "<script type=\"text/javascript\">\n";
   htmlMenuBar += "var tday=[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"];\n";
@@ -522,7 +598,7 @@ String htmlMenuBar() {
   htmlMenuBar += "setInterval(GetClock,1000);\n";
   htmlMenuBar += "</script>\n";
   htmlMenuBar += "</div>\n";
-  
+
   return htmlMenuBar;
 }
 
