@@ -24,16 +24,15 @@
 // The following three variables must be configured by the user for the sketch to work. //////////////
 
 // Enter the SSID for your wifi network.
-char* ssid = "..............";
+const char* ssid = "..............";
 
 // Enter your wifi password.
-char* password = "..............";
+const char* password = "..............";
 
 // Provide your OpenWeatherMap API key.  See
 // https://docs.thingpulse.com/how-tos/openweathermap-key/
 // for more information.
 const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,7 +43,7 @@ const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
 
 // Set any hostname you desire.
-char* hostname = "MiP-0x01";
+const char* hostname = "MiP-0x01";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,7 +107,6 @@ String header;
 // Function prototypes for HTTP handlers.
 void handleRoot();
 void handleNotFound();
-void handleFormSubmit();
 
 // For form validation when searching for a new city.
 boolean searchError = false;
@@ -130,9 +128,6 @@ void setup() {
 
   // Call the 'handleRoot' function when a client requests the URI "/".
   server.on("/", handleRoot);
-
-  // Call the 'handleFormSubmit' function when a client submits the search form.
-  server.on("/search.html", handleFormSubmit);
 
   // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound."
   server.onNotFound(handleNotFound);
@@ -520,12 +515,6 @@ bool updateChestLED() {
 
 // Handle calls from the web client to the web server.
 void handleRoot() {
-  // Send HTTP status 200 (Ok) and the page to the client.
-  server.send(200, "text/html", completePage());
-}
-
-// Handle requests to search for and change the city.
-void handleFormSubmit() {
   // In case the search fails.
   String lastCity = data.cityName;
 
@@ -577,7 +566,7 @@ void handleNotFound() {
   char errorMessage[150];
 
   sprintf(errorMessage,
-          "404: Not found.\n\nPlease use \"http://%s\" or \"http://%s.local\" to see the weather.\n         -MiP",
+          "404: Not found.\n\nPlease use \"http://%s\" or \"http://%s.local\" to see the weather.\n         Thank you.\n                  -MiP",
           WiFi.localIP().toString().c_str(), hostname);
 
   server.send(404, "text/plain", errorMessage);
@@ -685,7 +674,7 @@ String htmlMenuBar() {
   String htmlMenuBar = "<div class=\"navbar\">\n";
 
   htmlMenuBar += "<div class=\"search-wrapper\">\n";
-  htmlMenuBar += "  <form action=\"search.html\" method=\"post\">\n";
+  htmlMenuBar += "  <form action=\"/\" method=\"post\">\n";
   htmlMenuBar += "    <input type=\"text\" name=\"city\" required class=\"search-box\" placeholder=\"";
   (searchError) ? htmlMenuBar += "Invalid city name or ID" : htmlMenuBar += "City name or ID";
   htmlMenuBar += "\" />\n";
