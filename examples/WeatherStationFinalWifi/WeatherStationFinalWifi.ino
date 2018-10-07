@@ -398,6 +398,7 @@ void randomEvasion() {
 
 // The rest of these functions support the weather station features.
 
+<<<<<<< HEAD
 // Save the location from the search field to SPIFFS.
 void saveLocation(const String location) {
   SPIFFS.remove("/location.txt");
@@ -444,6 +445,14 @@ void updateWeatherByName(const String cityName) {
       Serial1.println("Found data for " + data.cityName + ".");
       break;
     }
+=======
+// Read the weather from OpenWeatherMap.
+void updateWeather() {
+  while (data.cityName.length() == 0) {
+    client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+    client.setMetric(IS_METRIC);
+    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
+>>>>>>> origin/master
   }
 }
 
@@ -581,7 +590,11 @@ String htmlHead() {
   head += "<meta http-equiv=\"refresh\" content=\"900\">\n";
   head += " <meta charset=\"UTF-8\">\n";
   head += " <meta name=\"viewport\" content=\"user-scalable=no,width=device-width\" />\n";
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/master
   head += "<style>\n";
   head += "  body {background-color: #";
   // Use the weather condition icon to determine the appropriate background color.  It's easier than checking for the
