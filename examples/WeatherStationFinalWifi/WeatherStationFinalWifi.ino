@@ -17,11 +17,9 @@
 #include <mip_esp8266.h>
 #include <JsonListener.h>
 #include <time.h>
-#include "OpenWeatherMapCurrent.h"
-#include "FS.h"
-
-// Include the WebServer library.
+#include <FS.h>
 #include <ESP8266WebServer.h>
+#include "OpenWeatherMapCurrent.h"
 
 // The following three variables must be configured by the user for the sketch to work. //////////////
 
@@ -52,6 +50,8 @@ char* hostname = "MiP-0x01";
 
 // No other changes need to be made.
 
+#define HTTP_RETRIES 3
+
 // MiP variables.
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
@@ -64,8 +64,14 @@ bool chestValuesWritten = false;
 bool lastUpdatedToSolid = false;
 bool extinguished = false;
 
-// When animating the eyes, pause between each write to prevent MiP timeout errors.
-const long eyesInterval = 500;
+// Interval in which to randomly write to the eyes, indicating rain.
+const long eyesRainInterval = 500;
+
+// A longer interval for drizzle.
+const long eyesDrizzleInterval = 1000;
+
+// An even longer interval for mist.
+const long eyesMistInterval = 3000;
 
 // Store the last time MiP's eyes were written to for animation.
 unsigned long previousEyesMillis = 0;
@@ -104,6 +110,9 @@ void handleRoot();
 void handleNotFound();
 void handleFormSubmit();
 
+// For form validation when searching for a new city.
+boolean searchError = false;
+
 
 void setup() {
   // Establish the WiFi connection.
@@ -133,20 +142,21 @@ void setup() {
 
   // We'll be able to turn MiP's eyes and chest on and off with a single clap while on the kickstand and reporting the weather.
   mip.enableClapEvents();
+  mip.writeClapDelay(1000);
 
   SPIFFS.begin();
 
   // Read the default weather location from SPIFFS.
   locationLine = readLocation();
-  if (data.cityName.length() == 0) {
+  if (locationLine.length() == 0) {
     Serial1.println(F("Using default location."));
     saveLocation(OPEN_WEATHER_MAP_LOCATION_ID);
   }
   locationLine = readLocation();
 
-  // Do the initial read of the weather.
-  updateWeather(locationLine);
+  updateWeatherById(locationLine);
 }
+
 
 void loop() {
   // Handle OTA updates.
@@ -155,7 +165,7 @@ void loop() {
   // This block of code pulls data from OpenWeatherMap.org every 15 minutes regardless of MiP's position.
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
-    updateWeather(locationLine);
+    updateWeatherById(locationLine);
     chestValuesWritten = false;
     previousMillis = currentMillis;
   }
@@ -176,6 +186,7 @@ void loop() {
     if (mip.isUpright()) {
       Serial1.println(F("Position: Upright"));
       // Set MiP into a custom roaming mode.
+      mip.disableClapEvents();
       customRoamMode();
     }
     if (mip.isPickedUp()) {
@@ -198,6 +209,7 @@ void loop() {
       // Make MiP ready to report the weather.  Don't forget to plug MiP in at this point.
       mip.stop();
       mip.disableRadarMode();
+      mip.enableClapEvents();
       mip.writeChestLED(red, green, blue);
     }
     lastPosition = currentPosition;
@@ -208,14 +220,15 @@ void loop() {
     // Listen for claps first.  If a clap is detected, toggle the boolean extinguished variable.
     while (mip.availableClapEvents() > 0) {
       uint8_t clapCount = mip.readClapEvent();
-      if (clapCount == 1 && extinguished == false) {
+      Serial1.println("Detected " + String(clapCount) + " clap(s).");
+      if (clapCount > 0 && extinguished == false) {
         Serial1.println(F("Clap detected, switching off."));
         mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
         mip.writeChestLED(0, 0, 0);
         extinguished = true;
         lastUpdatedToSolid = false;
         chestValuesWritten = false;
-      } else if (clapCount == 1 && extinguished == true) {
+      } else if (clapCount > 0 && extinguished == true) {
         Serial1.println(F("Clap detected, switching on."));
         extinguished = false;
       }
@@ -223,9 +236,25 @@ void loop() {
 
     if (!extinguished) {
       if (data.description.indexOf("rain") >= 0) { // Animate the eyes to indicate rain.
-        // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesInterval.
+        // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
         unsigned long eyesMillis = millis();
-        if (eyesMillis - previousEyesMillis >= eyesInterval) {
+        if (eyesMillis - previousEyesMillis >= eyesRainInterval) {
+          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          previousEyesMillis = eyesMillis;
+        }
+        lastUpdatedToSolid = false;
+      } else if (data.description.indexOf("drizzle") >= 0) {
+        // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
+        unsigned long eyesMillis = millis();
+        if (eyesMillis - previousEyesMillis >= eyesDrizzleInterval) {
+          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          previousEyesMillis = eyesMillis;
+        }
+        lastUpdatedToSolid = false;
+      } else if (data.description.indexOf("mist") >= 0) {
+        // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
+        unsigned long eyesMillis = millis();
+        if (eyesMillis - previousEyesMillis >= eyesMistInterval) {
           mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           previousEyesMillis = eyesMillis;
         }
@@ -245,6 +274,7 @@ void loop() {
   // Listen for HTTP requests from clients.
   server.handleClient();
 }
+
 
 // Play a randomly selected sound when MiP falls.
 void randomFall() {
@@ -370,6 +400,7 @@ void randomEvasion() {
 
 // Save the location from the search field to SPIFFS.
 void saveLocation(const String location) {
+  SPIFFS.remove("/location.txt");
   File saveFile = SPIFFS.open("/location.txt", "w");
   saveFile.println(location);
   saveFile.close();
@@ -386,13 +417,33 @@ String readLocation() {
   return savedLocation;
 }
 
-// Read the weather from OpenWeatherMap.
-void updateWeather(const String locationId) {
-  data.cityName = "";
-  while (data.cityName.length() == 0) {
-    client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-    client.setMetric(IS_METRIC);
-    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, locationId);
+// Read the weather from OpenWeatherMap by city ID.
+void updateWeatherById(const String cityId) {
+  client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+  client.setMetric(IS_METRIC);
+
+  for (int i = 0; i < HTTP_RETRIES ; i ++) {
+    if (data.cityName.length() == 0) {
+      client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, cityId);
+    } else {
+      Serial1.println("Found data for " + data.cityName + ", " + data.country + ".");
+      break;
+    }
+  }
+}
+
+// Read the weather from OpenWeatherMap by city name.
+void updateWeatherByName(const String cityName) {
+  client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+  client.setMetric(IS_METRIC);
+
+  for (int i = 0; i < HTTP_RETRIES ; i ++) {
+    if (data.cityName.length() == 0) {
+      client.updateCurrent(&data, OPEN_WEATHER_MAP_APP_ID, cityName);
+    } else {
+      Serial1.println("Found data for " + data.cityName + ".");
+      break;
+    }
   }
 }
 
@@ -453,13 +504,42 @@ void handleRoot() {
 
 // Handle requests to search for and change the city.
 void handleFormSubmit() {
+  // In case the search fails.
+  String lastCity = data.cityName;
+
   if (server.args() > 0 ) {
     for ( uint8_t i = 0; i < server.args(); i++ ) {
       if (server.argName(i) == "city") {
-        saveLocation(server.arg(i));
-        updateWeather(readLocation());
-        if (!extinguished) {
-          updateChestLED();
+        // Validate the data.
+        data.cityName = "";
+        updateWeatherById(server.arg(i));
+        if (data.cityName.length() == 0) {
+          Serial1.println(F("Failed update by ID, trying by name."));
+          updateWeatherByName(server.arg(i));
+          if (data.cityName.length() == 0) {
+            searchError = true;
+
+            // The search failed so put the old city back for the next page display.
+            data.cityName = lastCity;
+          } else {
+            // The update by name was successful but do the save using the city ID.
+            Serial1.println("Found data for " + data.cityName + ".");
+            saveLocation(data.cityId);
+            Serial1.println("Saved " + readLocation());
+            locationLine = data.cityId;
+            searchError = false;
+            if (!extinguished) {
+              updateChestLED();
+            }
+          }
+        } else {
+          // The update by ID was successful so save the user's search string for the next time.
+          saveLocation(server.arg(i));
+          locationLine = server.arg(i);
+          searchError = false;
+          if (!extinguished) {
+            updateChestLED();
+          }
         }
       }
     }
@@ -472,7 +552,13 @@ void handleFormSubmit() {
 // Handle "not found" calls from the web client to the web server.
 void handleNotFound() {
   // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
-  server.send(404, "text/plain", "404: Not found");
+  char errorMessage[150];
+
+  sprintf(errorMessage,
+          "404: Not found.\n\nPlease use \"http://%s\" or \"http://%s.local\" to see the weather.\n         -MiP",
+          WiFi.localIP().toString().c_str(), hostname);
+
+  server.send(404, "text/plain", errorMessage);
 }
 
 // Beyond here lies the HTML served to the client from handleRoot().
@@ -494,6 +580,7 @@ String htmlHead() {
   // Refresh every 15 minutes.
   head += "<meta http-equiv=\"refresh\" content=\"900\">\n";
   head += " <meta charset=\"UTF-8\">\n";
+  head += " <meta name=\"viewport\" content=\"user-scalable=no,width=device-width\" />\n";
 
   head += "<style>\n";
   head += "  body {background-color: #";
@@ -531,6 +618,9 @@ String htmlHead() {
   head += "  .close-icon {border:1px solid transparent; background-color: transparent; display: inline-block; vertical-align: middle; outline: 0; cursor: pointer;}\n";
   head += "  .close-icon:after {content: \"X\"; display: block; width: 15px; height: 15px; position: absolute; background-color: #FA9595; z-index:1; right: 35px; top: 0; bottom: 0; margin: auto; padding: 2px; border-radius: 50%; text-align: center; color: white; font-weight: normal; font-size: 10px; box-shadow: 0 0 2px #E50F0F; cursor: pointer;}\n";
   head += "  .search-box:not(:valid) ~ .close-icon { display: none;}\n";
+  if (searchError) {
+    head += "  ::placeholder {color: red; opacity: 1;}\n";
+  }
 
   // ...and conveniently displays the user's local time.
   head += "  .menuclock {font-family: Arial, Helvetica, sans-serif; color: #ffffff; float: right; padding: 10px 5px; margin-left: 30%;}\n";
@@ -574,7 +664,9 @@ String htmlMenuBar() {
 
   htmlMenuBar += "<div class=\"search-wrapper\">\n";
   htmlMenuBar += "  <form action=\"search.html\" method=\"post\">\n";
-  htmlMenuBar += "    <input type=\"text\" name=\"city\" required class=\"search-box\" placeholder=\"Your city\" />\n";
+  htmlMenuBar += "    <input type=\"text\" name=\"city\" required class=\"search-box\" placeholder=\"";
+  (searchError) ? htmlMenuBar += "Invalid city name or ID" : htmlMenuBar += "City name or ID";
+  htmlMenuBar += "\" />\n";
   htmlMenuBar += "      <button class=\"close-icon\" type=\"reset\"></button>\n";
   htmlMenuBar += "  </form>\n";
   htmlMenuBar += "</div>\n";
@@ -625,10 +717,10 @@ String htmlFooter() {
 // A nicely formatted HTML rendering of the weather data.
 String htmlWeatherData() {
   String htmlOutput = "<hr />";
+  htmlOutput += "<h4>Weather for " + data.cityName + ", " + data.country + "</h4>\n";
   htmlOutput += "<p>\n";
   time_t time = data.observationTime;
   htmlOutput += "Observation time: " + String(ctime(&time)) + "<br>\n";
-  htmlOutput += "Weather ID: " + String(data.weatherId) + "<br>\n";
   htmlOutput += "Description: " + data.description + "<br>\n";
   htmlOutput += "IconMeteoCon: " + data.iconMeteoCon + "<br>\n";
   htmlOutput += "Temperature: " + String(round(data.temp)) + "&#176;<br>\n";
@@ -709,3 +801,4 @@ String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t b
 
   return chestHTML;
 }
+
