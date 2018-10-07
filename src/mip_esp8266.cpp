@@ -163,21 +163,21 @@ void MiP::clear()
     m_irId = 0x00;
 }
 
-bool MiP::begin(char* ssid, char* password, char* hostname)
+bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 {
     bool returnValue = begin();
 
-    m_ssid = ssid;
-    m_password = password;
-    m_hostname = hostname;
+    memcpy(m_ssid, ssid, strlen(ssid)+1);
+    memcpy(m_password, password, strlen(password)+1);
+    memcpy(m_hostname, hostname, strlen(hostname)+1);
 
-    WiFi.mode(WIFI_STA);
+    WiFi.hostname(m_hostname);
     WiFi.begin(m_ssid, m_password);
+
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-        Serial1.println(F("MiP: Internet connection failed. Rebooting..."));
-        delay(5000);
-        ESP.restart();
+        Serial1.println(F("MiP: Internet connection failed. Retrying..."));
+        WiFi.reconnect();
     }
 
     ArduinoOTA.onStart([]() {
