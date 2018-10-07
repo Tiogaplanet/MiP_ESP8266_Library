@@ -398,7 +398,6 @@ void randomEvasion() {
 
 // The rest of these functions support the weather station features.
 
-<<<<<<< HEAD
 // Save the location from the search field to SPIFFS.
 void saveLocation(const String location) {
   SPIFFS.remove("/location.txt");
@@ -420,10 +419,16 @@ String readLocation() {
 
 // Read the weather from OpenWeatherMap by city ID.
 void updateWeatherById(const String cityId) {
+  // If the update fails we will restore the city name.
+  String holder = data.cityName;
+  data.cityName = "";
+
   client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
   client.setMetric(IS_METRIC);
 
-  for (int i = 0; i < HTTP_RETRIES ; i ++) {
+  uint8_t i;
+
+  for (i = 0; i < HTTP_RETRIES ; i++) {
     if (data.cityName.length() == 0) {
       client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, cityId);
     } else {
@@ -431,28 +436,36 @@ void updateWeatherById(const String cityId) {
       break;
     }
   }
+
+  if (i == HTTP_RETRIES && data.cityName.length() == 0) {
+    Serial1.println(F("Failed updating weather."));
+    data.cityName = holder;
+  }
 }
 
 // Read the weather from OpenWeatherMap by city name.
 void updateWeatherByName(const String cityName) {
+  // If the update fails we will restore the city name.
+  String holder = data.cityName;
+  data.cityName = "";
+
   client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
   client.setMetric(IS_METRIC);
 
-  for (int i = 0; i < HTTP_RETRIES ; i ++) {
+  uint8_t i;
+
+  for (i = 0; i < HTTP_RETRIES ; i++) {
     if (data.cityName.length() == 0) {
       client.updateCurrent(&data, OPEN_WEATHER_MAP_APP_ID, cityName);
     } else {
       Serial1.println("Found data for " + data.cityName + ".");
       break;
     }
-=======
-// Read the weather from OpenWeatherMap.
-void updateWeather() {
-  while (data.cityName.length() == 0) {
-    client.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-    client.setMetric(IS_METRIC);
-    client.updateCurrentById(&data, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION_ID);
->>>>>>> origin/master
+  }
+
+  if (i == HTTP_RETRIES && data.cityName.length() == 0) {
+    Serial1.println(F("Failed updating weather."));
+    data.cityName = holder;
   }
 }
 
@@ -590,11 +603,7 @@ String htmlHead() {
   head += "<meta http-equiv=\"refresh\" content=\"900\">\n";
   head += " <meta charset=\"UTF-8\">\n";
   head += " <meta name=\"viewport\" content=\"user-scalable=no,width=device-width\" />\n";
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> origin/master
   head += "<style>\n";
   head += "  body {background-color: #";
   // Use the weather condition icon to determine the appropriate background color.  It's easier than checking for the
