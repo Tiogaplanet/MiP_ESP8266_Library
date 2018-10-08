@@ -390,7 +390,7 @@ public:
     ~MiP();
 
     bool begin();
-    bool begin(char* ssid, char* password, char* hostname);
+    bool begin(const char* ssid, const char* password, const char* hostname);
     void end();
     void sleep();
 
