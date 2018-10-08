@@ -604,9 +604,9 @@ protected:
     CircularQueue<uint32_t, 8>   m_irCodeEvents;
     CircularQueue<uint8_t, 8>    m_detectedMiPEvents;
     uint8_t                      m_irId;
-    char*                        m_ssid;
-    char*                        m_password;
-    char*                        m_hostname;
+    char                         m_ssid[32];
+    char                         m_password[64];
+    char                         m_hostname[63];
 };
 
 #endif // MIP_ESP8266_H
