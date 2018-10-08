@@ -583,6 +583,15 @@ void MiP::writeChestLED(uint8_t red, uint8_t green, uint8_t blue)
     }
 }
 
+void MiP::unverifiedWriteChestLED(uint8_t red, uint8_t green, uint8_t blue)
+{
+    // The blue channel is actually only 6-bit and not a full 8-bit so zero out lower 2 bits (the MiP does this too).
+    blue &= ~3;
+
+    // Do not perform any checks for whether the write was successful.
+    rawSetChestLED(red, green, blue);
+}
+
 void MiP::writeChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTime, uint16_t offTime)
 {
     int8_t result;
@@ -760,9 +769,20 @@ void MiP::writeHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHe
     }
 }
 
+void MiP::unverifiedWriteHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHeadLED led4)
+{
+    // Do not perform any checks for whether the write was successful.
+    rawSetHeadLEDs(led1, led2, led3, led4);
+}
+
 void MiP::writeHeadLEDs(const MiPHeadLEDs& headLEDs)
 {
     writeHeadLEDs(headLEDs.led1, headLEDs.led2, headLEDs.led3, headLEDs.led4);
+}
+
+void MiP::unverifiedWriteHeadLEDs(const MiPHeadLEDs& headLEDs)
+{
+    unverifiedWriteHeadLEDs(headLEDs.led1, headLEDs.led2, headLEDs.led3, headLEDs.led4);
 }
 
 void MiP::readHeadLEDs(MiPHeadLEDs& headLEDs)

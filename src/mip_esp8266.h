@@ -426,12 +426,15 @@ public:
     MiPGesture readGestureEvent();
 
     void writeChestLED(uint8_t red, uint8_t green, uint8_t blue);
+    void unverifiedWriteChestLED(uint8_t red, uint8_t green, uint8_t blue);
     void writeChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTime, uint16_t offTime);
     void writeChestLED(const MiPChestLED& chestLED);
     void readChestLED(MiPChestLED& chestLED);
 
     void writeHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHeadLED led4);
+    void unverifiedWriteHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHeadLED led4);
     void writeHeadLEDs(const MiPHeadLEDs& headLEDs);
+    void unverifiedWriteHeadLEDs(const MiPHeadLEDs& headLEDs);
     void readHeadLEDs(MiPHeadLEDs& headLEDs);
 
     void continuousDrive(int8_t velocity, int8_t turnRate);
