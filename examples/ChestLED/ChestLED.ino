@@ -15,6 +15,7 @@
 /* Example used in following API documentation:
     writeChestLED()
     readChestLED()
+    unverifiedChestLED()
 */
 #include <mip_esp8266.h>
 
@@ -58,6 +59,31 @@ void setup() {
   printCurrentChestLEDSetting();
   delay(1000);
 
+  // Attempt to run through the same sequence of chest LED changes using the 
+  // unverifiedWriteChestLED() functions which don't always get accepted by MiP.
+  Serial1.println(F("Trying to set chest LED to magenta."));
+  red = 0xff;
+  green = 0x01;
+  blue = 0xfe;
+  mip.unverifiedWriteChestLED(red, green, blue);
+  delay(1000);
+
+  Serial1.println(F("Trying to set chest LED to blink red."));
+  red = 0xff;
+  green = 0x01;
+  blue = 0x05;
+  mip.unverifiedWriteChestLED(red, green, blue, onTime, offTime);
+  delay(4000);
+
+  Serial1.println(F("Trying to set chest LED back to green."));
+  chestLED.red = 0x00;
+  chestLED.green = 0xff;
+  chestLED.blue = 0x00;
+  chestLED.onTime = 0;
+  chestLED.offTime = 0;
+  mip.unverifiedWriteChestLED(chestLED);
+  delay(1000);
+  
   Serial1.println();
   Serial1.println(F("Sample done."));
 }
@@ -84,4 +110,3 @@ static void printCurrentChestLEDSetting() {
     Serial1.println(F(" milliseconds"));
   Serial1.println();
 }
-

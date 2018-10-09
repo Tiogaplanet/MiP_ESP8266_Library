@@ -15,6 +15,7 @@
 /* Example used in following API documentation:
     writeHeadLEDs()
     readHeadLEDs()
+    unverifiedWriteHeadLEDs()
 */
 #include <mip_esp8266.h>
 
@@ -48,6 +49,17 @@ void setup() {
   Serial1.println(F("Turning all eye LEDs back on now."));
   headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
   mip.writeHeadLEDs(headLEDs);
+  delay(1000);
+
+  // Attempt to run through the same sequence of head LED changes using the 
+  // unverifiedWriteHeadLEDs() functions which don't always get accepted by MiP.
+  Serial1.println(F("Trying to set each head LED to a different state."));
+  mip.unverifiedWriteHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_ON, MIP_HEAD_LED_BLINK_SLOW, MIP_HEAD_LED_BLINK_FAST);
+  delay(4000);
+
+  Serial1.println(F("Trying to set all eye LEDs back on now."));
+  headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
+  mip.unverifiedWriteHeadLEDs(headLEDs);
 
   Serial1.println();
   Serial1.println(F("Sample done."));
@@ -75,4 +87,3 @@ static void printLEDString(MiPHeadLED led) {
 
 void loop() {
 }
-
