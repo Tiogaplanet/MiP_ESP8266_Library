@@ -234,7 +234,7 @@ void loop() {
         // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
         unsigned long eyesMillis = millis();
         if (eyesMillis - previousEyesMillis >= eyesRainInterval) {
-          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          mip.unverifiedWriteHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           previousEyesMillis = eyesMillis;
         }
         lastUpdatedToSolid = false;
@@ -242,7 +242,7 @@ void loop() {
         // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
         unsigned long eyesMillis = millis();
         if (eyesMillis - previousEyesMillis >= eyesDrizzleInterval) {
-          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          mip.unverifiedWriteHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           previousEyesMillis = eyesMillis;
         }
         lastUpdatedToSolid = false;
@@ -250,7 +250,7 @@ void loop() {
         // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
         unsigned long eyesMillis = millis();
         if (eyesMillis - previousEyesMillis >= eyesMistInterval) {
-          mip.writeHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
+          mip.unverifiedWriteHeadLEDs((MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2), (MiPHeadLED)random(0, 2));
           previousEyesMillis = eyesMillis;
         }
         lastUpdatedToSolid = false;
@@ -469,7 +469,7 @@ void updateWeatherByName(const String cityName) {
 bool updateChestLED() {
   if (data.temp) {
     // Range of blue.
-    if (data.temp < 32) {
+    if (data.temp <= 32) {
       blue = 255;
     }
     else if (data.temp > 32 && data.temp <= 72) {
@@ -480,7 +480,7 @@ bool updateChestLED() {
     }
 
     // Range of green.
-    if (data.temp < 32) {
+    if (data.temp <= 32) {
       green = 0;
     }
     else if (data.temp > 32 && data.temp <= 60) {
