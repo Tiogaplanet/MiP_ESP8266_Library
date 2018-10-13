@@ -12,28 +12,43 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch shows the bare minimum needed to connect MiP to wifi.
-// This sketch may be used as a starting point for your sketch.
+// This example sketch checks your Gmail account and flashes MiP's chest LED
+// to indicate new email.
 #include <mip_esp8266.h>
 #include <WiFiClientSecure.h>   // Include the HTTPS library
 
-//const char* ssid = "..............";                // Enter the SSID for your wifi network.
-//const char* password = "..............";            // Enter your wifi password.
+const char* ssid = "..............";
+const char* password = "..............";
 
-const char* hostname = "MiP-0x01";                  // Set any hostname you desire.
+const char* hostname = "MiP-0x01";
 
-MiP         mip;                              // We need a single MiP object
-bool        connectResult;                    // Test whether a connection to MiP was established.
+MiP  mip;
+bool connectResult;
 
-const char* host = "mail.google.com"; // the Gmail server
-const char* url = "/mail/feed/atom";  // the Gmail feed url
-const int httpsPort = 443;            // the port to connect to the email server
+// The Gmail server.
+const char* host = "mail.google.com"; 
 
-// The SHA-1 fingerprint of the SSL certificate for the Gmail server (see below)
-const char* fingerprint = "D3 90 FC 82 07 E6 0D C2 CE F9 9D 79 7F EC F6 E6 3E CB 8B B3";
+// The Gmail feed URL.
+const char* url = "/mail/feed/atom"; 
 
-// The Base64 encoded version of your Gmail login credentials (see below)
-const char* credentials = "ZW1haWwuYWRkcmVzc0BnbWFpbC5jb206cGFzc3dvcmQ=";
+ // The port to connect to the email server.
+const int httpsPort = 443;            
+
+// The Base64 encoded version of your Gmail login credentials.
+const char* credentials = "bWlwQGdtYWlsLmNvbTpBIHZlcnkgbG9uZyBwYXNzd29yZCwgaW5kZWVkLg==";
+
+// Keep track of new and older, unread emails.
+int latestUnread;
+int lastUnread;
+
+// Store the last time Gmail was queried.
+unsigned long previousMillis = 0;
+
+// Check mail every minute (60000 milliseconds).
+const long mailInterval = 60000;
+
+// Don't let MiP disconnect from the ESP8266.  Send a read command every nine minutes.
+const long keepAliveInterval = 540000;
 
 void setup() {
   connectResult = mip.begin(ssid, password, hostname);
@@ -43,53 +58,72 @@ void setup() {
     return;
   }
 
-  Serial1.print(F("IP address: "));               // You could delete this chunk of code.  It's just here
-  Serial1.println(WiFi.localIP());             // to show your IP address.
+  // Check email for the first time.
+  latestUnread = lastUnread = getUnread();
+  previousMillis = millis();
+
+  // Make sure the chest is solid before we loop.
+  mip.writeChestLED(0x00, 0xFF, 0x00);
 }
 
 
 void loop() {
-  ArduinoOTA.handle();                        // Without this we can't do OTA programming.
+  ArduinoOTA.handle();
 
-  int unread = getUnread();
-  if (unread == 0) {
-    Serial1.println(F("\r\nYou've got no unread emails"));
-    mip.writeChestLED(0x00, 0xFF, 0x00);  // Set chest to solid green.
-  } else if (unread > 0) {
-    Serial1.printf("\r\nYou've got %d new messages\r\n", unread);
-    mip.writeChestLED(0x00, 0xFF, 0x00, 990, 980)
-  } else {
-    Serial1.println(F("Could not get unread mails"));
+  unsigned long currentMillis  = millis();
+  unsigned long keepAliveMillis = currentMillis;
+
+  if (currentMillis - previousMillis >= mailInterval) {
+    latestUnread = getUnread();
+    if (latestUnread > lastUnread) {
+      Serial1.printf("You have %d new email%s and %d older, unread email%s.\n",
+                     latestUnread - lastUnread, latestUnread - lastUnread == 1 ? "" : "s", lastUnread, lastUnread == 1 ? "" : "s");
+      MiPChestLED chestLED;
+      mip.readChestLED(chestLED);
+      if (chestLED.offTime != 980) {
+        // flash the chest to indicate new email.
+        mip.writeChestLED(0x00, 0xFF, 0x00, 990, 980);
+      }
+    } else if (latestUnread < lastUnread) {
+      // User either read or deleted unread emails, so stop indicating new email.
+      Serial1.printf("You have %d unread message%s.\r\n", latestUnread, latestUnread == 1 ? "" : "s");
+      // Set the chest LED to solid green.
+      mip.writeChestLED(0x00, 0xFF, 0x00);
+    } else if (latestUnread == -1) {
+      Serial1.println(F("I could not access your email. I'll try again in a minute."));
+    }
+    lastUnread = latestUnread;
+    previousMillis = currentMillis;
   }
-  Serial1.println(F('\n'));
-  delay(5000);
+
+  if (currentMillis - keepAliveMillis >= keepAliveInterval) {
+    mip.readPosition();
+    keepAliveMillis = currentMillis;
+  }
 }
 
-int getUnread() {    // a function to get the number of unread emails in your Gmail inbox
-  WiFiClientSecure client; // Use WiFiClientSecure class to create TLS (HTTPS) connection
+// Get the number of unread emails in your Gmail inbox.
+int getUnread() {
+  // Use WiFiClientSecure class to create a TLS (HTTPS) connection.
+  WiFiClientSecure client;
   Serial1.printf("Connecting to %s:%d ... \r\n", host, httpsPort);
-  if (!client.connect(host, httpsPort)) {   // Connect to the Gmail server, on port 443
-    Serial1.println(F("Connection failed"));    // If the connection fails, stop and return
+  // Connect to the Gmail server on port 443.
+  if (!client.connect(host, httpsPort)) {
+    // If the connection fails, stop and return.
+    Serial1.println(F("Connection failed."));
     return -1;
   }
 
-  if (client.verify(fingerprint, host)) {   // Check the SHA-1 fingerprint of the SSL certificate
-    Serial1.println(F("Certificate matches"));
-  } else {                                  // if it doesn't match, it's not safe to continue
-    Serial1.println(F("Certificate doesn't match"));
-    return -1;
-  }
+  Serial1.printf("Requesting URL: %s%s\n", host, url);
 
-  Serial1.print(F("Requesting URL: "));
-  Serial1.println(url);
-
+  // Send the HTTP request headers.
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "Authorization: Basic " + credentials + "\r\n" +
                "User-Agent: ESP8266\r\n" +
-               "Connection: close\r\n\r\n"); // Send the HTTP request headers
+               "Connection: close\r\n\r\n");
 
-  Serial1.println(F("Request sent"));
+  Serial1.println(F("Request sent."));
 
   int unread = -1;
 
@@ -102,8 +136,8 @@ int getUnread() {    // a function to get the number of unread emails in your Gm
       break;                                            // stop reading
     }                                                   // if the tag is not <fullcount>, repeat and read the next tag
   }
-  Serial1.println("Connection closed");
+  Serial1.println(F("Connection closed."));
 
-  return unread;                                        // Return the number of unread emails
+  return unread;
 }
 
