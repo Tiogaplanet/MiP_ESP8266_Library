@@ -12,30 +12,52 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch checks your Gmail account and flashes MiP's chest LED
-// to indicate new email.
+// This example sketch checks your Gmail account every minute and flashes
+// MiP's chest LED to indicate new email.
 #include <mip_esp8266.h>
-#include <WiFiClientSecure.h>   // Include the HTTPS library
 
+// Include the HTTPS library.
+#include <WiFiClientSecure.h>
+
+// The following three variables must be configured by the user for the sketch to work. ////////////
+
+// Enter the SSID for your wifi network.
 const char* ssid = "..............";
+
+// Enter your wifi password.
 const char* password = "..............";
+
+// The Base64 encoded version of your Gmail login credentials.
+const char* credentials = "bWlwQGdtYWlsLmNvbTpBIHZlcnkgbG9uZyBwYXNzd29yZCwgaW5kZWVkLg==";
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The hostname variable can be configured to the user's preference. ////////////////////////////////
 
 const char* hostname = "MiP-0x01";
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// No other changes need to be made.
+
+// Define some on and off times to flash the chest LED.
+#define ON_TIME 1000
+#define OFF_TIME 700
+
+// MiP variables.
 MiP  mip;
 bool connectResult;
 
 // The Gmail server.
-const char* host = "mail.google.com"; 
+const char* host = "mail.google.com";
 
 // The Gmail feed URL.
-const char* url = "/mail/feed/atom"; 
+const char* url = "/mail/feed/atom";
 
- // The port to connect to the email server.
-const int httpsPort = 443;            
-
-// The Base64 encoded version of your Gmail login credentials.
-const char* credentials = "bWlwQGdtYWlsLmNvbTpBIHZlcnkgbG9uZyBwYXNzd29yZCwgaW5kZWVkLg==";
+// The port to connect to the email server.
+const int httpsPort = 443;
 
 // Keep track of new and older, unread emails.
 int latestUnread;
@@ -44,13 +66,14 @@ int lastUnread;
 // Store the last time Gmail was queried.
 unsigned long previousMillis = 0;
 
-// Check mail every minute (60000 milliseconds).
+// Check Gmail every minute (60000 milliseconds).
 const long mailInterval = 60000;
 
-// Don't let MiP disconnect from the ESP8266.  Send a read command every nine minutes.
+// Don't let MiP disconnect from the esp8266.  Send a read command every nine minutes.
 const long keepAliveInterval = 540000;
 
 void setup() {
+  // Establish the WiFi connection and connect to MiP.
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
@@ -80,9 +103,10 @@ void loop() {
                      latestUnread - lastUnread, latestUnread - lastUnread == 1 ? "" : "s", lastUnread, lastUnread == 1 ? "" : "s");
       MiPChestLED chestLED;
       mip.readChestLED(chestLED);
-      if (chestLED.offTime != 980) {
+      // If the chest is already flashing, don't write to it again.
+      if (chestLED.offTime != OFF_TIME) {
         // flash the chest to indicate new email.
-        mip.writeChestLED(0x00, 0xFF, 0x00, 990, 980);
+        mip.writeChestLED(0x00, 0xFF, 0x00, ON_TIME, OFF_TIME);
       }
     } else if (latestUnread < lastUnread) {
       // User either read or deleted unread emails, so stop indicating new email.
@@ -96,6 +120,8 @@ void loop() {
     previousMillis = currentMillis;
   }
 
+  // This sketch could possibly wait a long time before writing anything to MiP's chest LED.  To keep
+  // MiP connected to the esp8266, read MiP's position every nine minutes.
   if (currentMillis - keepAliveMillis >= keepAliveInterval) {
     mip.readPosition();
     keepAliveMillis = currentMillis;
