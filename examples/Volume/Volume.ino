@@ -29,7 +29,7 @@ void setup() {
 
   Serial1.println(F("Volume.ino - Use read/writeVolume(). Set volume level to 1 and read out afterwards."));
 
-  mip.writeVolume(1);
+  mip.writeVolume(MIP_VOLUME_OFF);
 
   uint8_t volume = mip.readVolume();
 
@@ -42,4 +42,3 @@ void setup() {
 
 void loop() {
 }
-
