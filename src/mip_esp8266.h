@@ -594,7 +594,6 @@ protected:
     uint32_t                     m_lastRequestTime;
     uint32_t                     m_lastContinuousDriveTime;
     uint8_t                      m_flags;
-    bool                         m_serialToMiP;
     uint8_t                      m_responseBuffer[MIP_RESPONSE_MAX_LEN];
     uint8_t                      m_expectedResponseCommand;
     uint8_t                      m_expectedResponseSize;
