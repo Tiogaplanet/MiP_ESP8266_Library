@@ -246,10 +246,8 @@ bool MiP::begin()
     int8_t retry;
     for (retry = 0 ; retry < MIP_MAX_BEGIN_RETRIES ; retry++)
     {
-        int8_t result = -1;
-
         // Try to connect at 115200 baud, the rate used by older MiPs.
-        result = attemptMiPConnection(MIP_FAST_BAUD_RATE);
+        int8_t result = attemptMiPConnection(MIP_FAST_BAUD_RATE);
         if (result == MIP_ERROR_NONE)
         {
             // Connection succeeded at 115200.
