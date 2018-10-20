@@ -20,12 +20,46 @@ script:
   - "echo $PWD"
   - "echo $HOME"
   - "ls $PWD"
-#  - source $TRAVIS_BUILD_DIR/travis/common.sh
-#  - build_examples
-#  - "cat $PWD/examples/AutoConnect/AutoConnect.ino"
+  - arduino --verify --board $BD $PWD/examples/BareMinimumWifi/BareMinimumWifi.ino
+  - arduino --verify --board $BD $PWD/examples/ChestLED/ChestLED.ino
+  - arduino --verify --board $BD $PWD/examples/Clap/Clap.ino
+  - arduino --verify --board $BD $PWD/examples/ContinuousDrive/ContinuousDrive.ino
+  - arduino --verify --board $BD $PWD/examples/DistanceDrive/DistanceDrive.ino
+  - arduino --verify --board $BD $PWD/examples/DriveForwardBackward/DriveForwardBackward.ino
+  - arduino --verify --board $BD $PWD/examples/EnableGameMode/EnableGameMode.ino
+  - arduino --verify --board $BD $PWD/examples/EnableMiPDetectionMode/EnableMiPDetectionMode.ino
+  - arduino --verify --board $BD $PWD/examples/FallDown/FallDown.ino
+  - arduino --verify --board $BD $PWD/examples/Gesture/Gesture.ino
+  - arduino --verify --board $BD $PWD/examples/GestureRadarMode/GestureRadarMode.ino
+  - arduino --verify --board $BD $PWD/examples/GetUp/GetUp.ino
+  - arduino --verify --board $BD $PWD/examples/GmailNotifierWifi/GmailNotifierWifi.ino
+  - arduino --verify --board $BD $PWD/examples/HeadLEDs/HeadLEDs.ino
+  - arduino --verify --board $BD $PWD/examples/Odometer/Odometer.ino
+  - arduino --verify --board $BD $PWD/examples/PlaySound/PlaySound.ino
+  - arduino --verify --board $BD $PWD/examples/Radar/Radar.ino
+  - arduino --verify --board $BD $PWD/examples/RawSendReceive/RawSendReceive.ino
+  - arduino --verify --board $BD $PWD/examples/ReadIRDongleCode/ReadIRDongleCode.ino
+  - arduino --verify --board $BD $PWD/examples/ReadWriteEeprom/ReadWriteEeprom.ino
+  - arduino --verify --board $BD $PWD/examples/SPIFFS/SPIFFS.ino
+  - arduino --verify --board $BD $PWD/examples/SRSdemo/SRSdemo.ino
+  - arduino --verify --board $BD $PWD/examples/SendIRDongleCode/SendIRDongleCode.ino
+  - arduino --verify --board $BD $PWD/examples/Shake/Shake.ino
+  - arduino --verify --board $BD $PWD/examples/Sleep/Sleep.ino
+  - arduino --verify --board $BD $PWD/examples/SoftwareHardwareVersion.ino
+  - arduino --verify --board $BD $PWD/examples/Status/Status.ino
+  - arduino --verify --board $BD $PWD/examples/Stop/Stop.ino
+  - arduino --verify --board $BD $PWD/examples/TelnetDebug/TelnetDebug.ino
+  - arduino --verify --board $BD $PWD/examples/TimeWifi/TimeWifi.ino
+  - arduino --verify --board $BD $PWD/examples/TurnLeftRight/TurnLeftRight.ino
+  - arduino --verify --board $BD $PWD/examples/Volume/Volume.ino
+  - arduino --verify --board $BD $PWD/examples/WeatherEmailFinalWifi/WeatherEmailFinalWifi.ino
   - arduino --verify --board $BD $PWD/examples/WeatherStationFinalWifi/WeatherStationFinalWifi.ino
-#  - arduino --verify --board arduino:avr:uno $PWD/examples/IncomingCall/IncomingCall.ino
-#  - arduino --verify --board arduino:avr:uno $PWD/examples/AdafruitIO_GPS/AdafruitIO_GPS.ino
+  - arduino --verify --board $BD $PWD/examples/WeatherStationSerialWifi/WeatherStationSerialWifi.ino
+  - arduino --verify --board $BD $PWD/examples/WeatherStationTelnetWifi/WeatherStationTelnetWifi.ino
+  - arduino --verify --board $BD $PWD/examples/WeatherStationWebWifi/WeatherStationWebWifi.ino
+  - arduino --verify --board $BD $PWD/examples/WeatherStationWifi/WeatherStationWifi.ino
+  - arduino --verify --board $BD $PWD/examples/Weight/Weight.ino
+  - arduino --verify --board $BD $PWD/examples/ZeroEeprom/ZeroEeprom.ino
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 notifications:
