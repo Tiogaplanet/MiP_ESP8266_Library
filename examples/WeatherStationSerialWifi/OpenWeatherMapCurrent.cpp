@@ -61,10 +61,10 @@ void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String url
     unsigned long lostTest = 10000UL;
     bool isBody = false;
     char c;
-    int size;
     WiFiClient * client = http.getStreamPtr();
 
     while (client->connected()) {
+      int size;
       while ((size = client->available()) > 0) {
         if ((millis() - lost_do) > lostTest) {
           Serial1.println ("lost in client with a timeout");
