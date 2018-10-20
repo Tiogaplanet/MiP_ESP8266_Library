@@ -1,7 +1,7 @@
 # MiP ESP8266 Library
 ![MiP Photo](https://github.com/WowWeeLabs/MiP-BLE-Protocol/blob/master/Images/MiP.png)<br>
 
-[![Build Status](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library.svg?branch=master)](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library)
+[![Build Status](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library.svg?branch=master)](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2cc48b8fb3e9435fa7e3951f238a44f8)](https://www.codacy.com/app/Tiogaplanet/MiP_ESP8266_Library?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Tiogaplanet/MiP_ESP8266_Library&amp;utm_campaign=Badge_Grade)
 
 This project provides a library for the Arduino IDE and allows users to take control of [WowWee Labs'](https://github.com/WowWeeLabs/)  [MiP](https://wowwee.com/mip) and turn it into a cloud-connected robot.
 
