@@ -1,32 +1,32 @@
 /**The MIT License (MIT)
 
- Copyright (c) 2018 by ThingPulse Ltd., https://thingpulse.com
+  Copyright (c) 2018 by ThingPulse Ltd., https://thingpulse.com
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
- */
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
 
 #include <WiFiClient.h>
 #include <ESP8266HTTPClient.h>
 #include "OpenWeatherMapCurrent.h"
 
 OpenWeatherMapCurrent::OpenWeatherMapCurrent() {
-
+  data = new OpenWeatherMapCurrentData();
 }
 
 void OpenWeatherMapCurrent::updateCurrent(OpenWeatherMapCurrentData *data, String appId, String location) {
@@ -43,7 +43,6 @@ String OpenWeatherMapCurrent::buildUrl(String appId, String locationParameter) {
 }
 
 void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String url) {
-  unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
   this->data = data;
@@ -53,24 +52,25 @@ void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String url
   HTTPClient http;
 
   http.begin(url);
-  bool isBody = false;
-  char c;
-  int size;
+
   Serial1.print("[HTTP] GET...\n");
   // start connection and send HTTP header
   int httpCode = http.GET();
   Serial1.printf("[HTTP] GET... code: %d\n", httpCode);
-  if(httpCode > 0) {
-
+  if (httpCode > 0) {
+    unsigned long lostTest = 10000UL;
+    bool isBody = false;
+    char c;
+    int size;
     WiFiClient * client = http.getStreamPtr();
 
-    while(client->connected()) {
-      while((size = client->available()) > 0) {
-		if ((millis() - lost_do) > lostTest) {
-			Serial1.println ("lost in client with a timeout");
-			client->stop();
-			ESP.restart();
-	    }
+    while (client->connected()) {
+      while ((size = client->available()) > 0) {
+        if ((millis() - lost_do) > lostTest) {
+          Serial1.println ("lost in client with a timeout");
+          client->stop();
+          ESP.restart();
+        }
         c = client->read();
         if (c == '{' || c == '[') {
 
@@ -123,7 +123,7 @@ void OpenWeatherMapCurrent::value(String value) {
       this->data->description = value;
     }
     // "icon": "09d" String icon;
-   //String iconMeteoCon;
+    //String iconMeteoCon;
     if (currentKey == "icon") {
       this->data->icon = value;
       this->data->iconMeteoCon = getMeteoconIcon(value);
@@ -220,7 +220,7 @@ void OpenWeatherMapCurrent::startArray() {
 
 
 String OpenWeatherMapCurrent::getMeteoconIcon(String icon) {
- 	// clear sky
+  // clear sky
   // 01d
   if (icon == "01d") 	{
     return "B";
