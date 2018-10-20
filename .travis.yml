@@ -45,7 +45,7 @@ script:
   - arduino --verify --board $BD $PWD/examples/SendIRDongleCode/SendIRDongleCode.ino
   - arduino --verify --board $BD $PWD/examples/Shake/Shake.ino
   - arduino --verify --board $BD $PWD/examples/Sleep/Sleep.ino
-  - arduino --verify --board $BD $PWD/examples/SoftwareHardwareVersion.ino
+  - arduino --verify --board $BD $PWD/examples/SoftwareHardwareVersion/SoftwareHardwareVersion.ino
   - arduino --verify --board $BD $PWD/examples/Status/Status.ino
   - arduino --verify --board $BD $PWD/examples/Stop/Stop.ino
   - arduino --verify --board $BD $PWD/examples/TelnetDebug/TelnetDebug.ino
