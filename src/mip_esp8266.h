@@ -612,6 +612,7 @@ protected:
     char                         m_ssid[32];
     char                         m_password[64];
     char                         m_hostname[63];
+    bool                         m_serialToMiP;
 };
 
 #endif // MIP_ESP8266_H
