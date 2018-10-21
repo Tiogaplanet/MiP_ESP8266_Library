@@ -135,7 +135,6 @@ static void mipAssert(uint32_t lineNumber)
 MiP::MiP()
 {
     clear();
-    m_serialToMiP = false;
 }
 
 MiP::~MiP()
