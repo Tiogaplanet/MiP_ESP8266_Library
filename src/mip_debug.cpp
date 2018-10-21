@@ -226,16 +226,17 @@ void MiPDebug::handle()
         }
 #endif
 
-#ifdef MAX_TIME_INACTIVE
-        // Inactivity - close connection if no commands have been received from the user in a
-        // defined interval.
-        if ((millis() - m_lastTimeCommand) > MAX_TIME_INACTIVE)
+        if( MAX_TIME_INACTIVE > 0)
         {
-            telnetClient.println("* Closing session due to inactivity.");
-            telnetClient.stop();
-            m_connected = false;
+          // Inactivity - close connection if no commands have been received from the user in a
+          // defined interval.
+          if ((millis() - m_lastTimeCommand) > MAX_TIME_INACTIVE)
+          {
+              telnetClient.println("* Closing session due to inactivity.");
+              telnetClient.stop();
+              m_connected = false;
+          }
         }
-#endif
     }
 }
 

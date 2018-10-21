@@ -39,9 +39,9 @@ bool system_update_cpu_freq(uint8 freq);
 // The default port for the telnet service.
 #define TELNET_PORT 23
 
-// Maximum time for inactivity (in milliseconds). Comment this line to disable the timeout interval.
-// Default: 10 minutes
-//#define MAX_TIME_INACTIVE 600000
+// Maximum time for inactivity (in milliseconds). Set it to 0 to disable timeout.
+// Default: 1 hour
+#define MAX_TIME_INACTIVE 3600000
 
 // Defines the buffer size for buffered output.
 #define BUFFER_PRINT 150
