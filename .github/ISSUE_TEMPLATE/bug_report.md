@@ -10,7 +10,7 @@ What behavior do you expect from the library?
 ### Actual behavior
 What behavior is actually being exhibited?
 
-```
+```text
 Add descriptive serial console output here.
 ```
 
