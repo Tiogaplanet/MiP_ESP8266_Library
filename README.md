@@ -1,5 +1,5 @@
 # MiP ESP8266 Library
-![MiP Photo](https://github.com/WowWeeLabs/MiP-BLE-Protocol/blob/master/Images/MiP.png)<br>
+![The D1 mini Pack mounted on MiP](https://github.com/Tiogaplanet/Experimenting-with-the-MiP/raw/master/images/IMG_5967_medium.JPG)
 
 [![Build Status](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library.svg?branch=master)](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2cc48b8fb3e9435fa7e3951f238a44f8)](https://www.codacy.com/app/Tiogaplanet/MiP_ESP8266_Library?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Tiogaplanet/MiP_ESP8266_Library&amp;utm_campaign=Badge_Grade)
 
