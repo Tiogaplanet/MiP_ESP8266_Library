@@ -123,8 +123,7 @@
 
 static void mipAssert(uint32_t lineNumber)
 {
-    Serial1.print(F("MiP Assert: mip.cpp:"));
-        Serial1.println(lineNumber);
+    Serial1.printf("MiP Assert: mip.cpp: %d\n", lineNumber);
 
     while (1)
     {
@@ -191,7 +190,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
         {
             type = "filesystem";
         }
-        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        // NOTE: If updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end().
         Serial1.println("MiP: Start updating " + type);
         });
     ArduinoOTA.onEnd([]() {
@@ -210,7 +209,8 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     });
 
     ArduinoOTA.begin();
-    Serial1.print(F("MiP: IP address: ")); Serial1.println(WiFi.localIP());
+
+    Serial1.printf("MiP: IP address: %d.%d.%d.%d\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified
@@ -220,9 +220,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     }
     else
     {
-      Serial1.print(F("MiP: mDNS responder started with hostname of "));
-      Serial1.print(m_hostname);
-      Serial1.println(F(".local"));
+      Serial1.printf("MiP: mDNS responder started with hostname of %s.local\n", m_hostname);
     }
 
     return returnValue;
@@ -294,7 +292,7 @@ int8_t MiP::attemptMiPConnection(uint32_t baudRate)
     if (result == MIP_ERROR_NONE)
     {
         // Let the user know at which baud rate the connection to MiP was made.
-        Serial1.printf("MiP: Connected at %d baud\n\r", baudRate);
+        Serial1.printf("\rMiP: Connected at %d baud\n\r", baudRate);
     }
     else
     {
@@ -673,7 +671,7 @@ void MiP::unverifiedWriteChestLED(uint8_t red, uint8_t green, uint8_t blue, uint
 
     rawFlashChestLED(red, green, blue, onTime, offTime);
 }
- 
+
 void MiP::unverifiedWriteChestLED(const MiPChestLED& chestLED)
 {
     unverifiedWriteChestLED(chestLED.red, chestLED.green, chestLED.blue, chestLED.onTime, chestLED.offTime);
@@ -816,7 +814,7 @@ void MiP::unverifiedWriteHeadLEDs(const MiPHeadLEDs& headLEDs)
 {
     unverifiedWriteHeadLEDs(headLEDs.led1, headLEDs.led2, headLEDs.led3, headLEDs.led4);
 }
- 
+
 // This internal protected method sends the set head LEDs command with no error checking. The error handling /
 // recovery happens at a higher level of the driver.
 void MiP::rawSetHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHeadLED led4)
@@ -2388,10 +2386,7 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                Serial1.print(F("MiP: Response too short: "));
-                    Serial1.print(bytesRead);
-                    Serial1.print(',');
-                    Serial1.println(bytesToRead * 2);
+                Serial1.printf("MiP: Response too short: %d, %d\n", bytesRead, bytesToRead * 2);
                 break;
             }
         }
@@ -2469,21 +2464,13 @@ void MiP::processOobResponseData(uint8_t commandByte)
         if (length < 2 || length > 4)
         {
             uint8_t discardedBytes = discardUnexpectedSerialData();
-            Serial1.print(F("MiP: Bad IR code length: "));
-            Serial1.print(length, HEX);
-            Serial1.print(F(" (discarded "));
-            Serial1.print(discardedBytes);
-            Serial1.println(F(" bytes)"));
+            Serial1.printf("MiP: Bad IR code length: 0x%02x (discarded %d bytes)\n", length, discardedBytes);
             return;
         }
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        Serial1.print(F("MiP: Bad OOB command byte: "));
-            Serial1.print(commandByte, HEX);
-            Serial1.print(F(" (discarded "));
-            Serial1.print(discardedBytes);
-            Serial1.println(F(" bytes)"));
+        Serial1.printf("MiP: Bad OOB command byte: 0x%02x (discarded %d bytes)\n", commandByte, discardedBytes);
         return;
     }
 
@@ -2494,10 +2481,7 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        Serial1.print(F("MiP: OOB too short: "));
-            Serial1.print(bytesRead);
-            Serial1.print(',');
-            Serial1.println(length * 2);
+        Serial1.printf("MiP: OOB too short: %d, %d", bytesRead, length * 2);
         return;
     }
 
