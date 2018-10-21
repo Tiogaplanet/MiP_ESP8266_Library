@@ -16,10 +16,10 @@
 // This sketch may be used as a starting point for your sketch.
 #include <mip_esp8266.h>
 
-char* ssid = "..............";                // Enter the SSID for your wifi network.
-char* password = "..............";            // Enter your wifi password.
+const char* ssid = "..............";          // Enter the SSID for your wifi network.
+const char* password = "..............";      // Enter your wifi password.
 
-char* hostname = "MiP-0x01";                  // Set any hostname you desire.
+const char* hostname = "MiP-0x01";            // Set any hostname you desire.
 
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.

@@ -38,13 +38,13 @@ String OPEN_WEATHER_MAP_LANGUAGE = "en";
 boolean IS_METRIC = false;
 
 // Enter the SSID for your wifi network.
-char* ssid = "..............";
+const char* ssid = "..............";
 
 // Enter your wifi password.
-char* password = "..............";
+const char* password = "..............";
 
 // Set any hostname you desire.
-char* hostname = "MiP-0x02";
+const char* hostname = "MiP-0x01";
 
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.

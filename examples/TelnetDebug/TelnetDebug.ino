@@ -15,10 +15,10 @@
 #include <mip_esp8266.h>
 #include <mip_debug.h>
 
-char* ssid = "..............";                // Enter the SSID for your wifi network.
-char* password = "..............";            // Enter your wifi password.
+const char* ssid = "..............";          // Enter the SSID for your wifi network.
+const char* password = "..............";      // Enter your wifi password.
 
-char* hostname = "MiP-0x01";                  // Set any hostname you desire.
+const char* hostname = "MiP-0x01";            // Set any hostname you desire.
 
 MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
@@ -40,7 +40,7 @@ void setup() {
 
   debug.begin(hostname);
 
-  debug.setResetCmdEnabled(true);             // Enable the reset command
+  debug.setResetCmdEnabled(true);             // Enable the reset command.
 
   Serial1.println(F("TelnetDebug.ino - Explore the different telnet debug levels."));
   Serial1.println();
