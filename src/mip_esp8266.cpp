@@ -123,7 +123,7 @@
 
 static void mipAssert(uint32_t lineNumber)
 {
-    Serial1.printf("MiP Assert: mip.cpp: %d\n", lineNumber);
+    Serial1.printf("MiP Assert: mip.cpp: %d\r\n", lineNumber);
 
     while (1)
     {
@@ -196,7 +196,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
         Serial1.println(F("\nEnd"));
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
+        Serial1.printf("Progress: %u%%\r\n", (progress / (total / 100)));
     });
     ArduinoOTA.onError([](ota_error_t error) {
         Serial1.printf("Error[%u]: ", error);
@@ -209,7 +209,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 
     ArduinoOTA.begin();
 
-    Serial1.printf("MiP: IP address: %d.%d.%d.%d\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    Serial1.printf("MiP: IP address: %d.%d.%d.%d\r\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified
@@ -219,7 +219,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     }
     else
     {
-      Serial1.printf("MiP: mDNS responder started with hostname of %s.local\n", m_hostname);
+      Serial1.printf("MiP: mDNS responder started with hostname of %s.local\r\n", m_hostname);
     }
 
     return returnValue;
@@ -291,7 +291,7 @@ int8_t MiP::attemptMiPConnection(uint32_t baudRate)
     if (result == MIP_ERROR_NONE)
     {
         // Let the user know at which baud rate the connection to MiP was made.
-        Serial1.printf("\rMiP: Connected at %d baud\n\r", baudRate);
+        Serial1.printf("\rMiP: Connected at %d baud\r\n", baudRate);
     }
     else
     {
@@ -2402,7 +2402,7 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                Serial1.printf("MiP: Response too short: %d, %d\n", bytesRead, bytesToRead * 2);
+                Serial1.printf("MiP: Response too short: %d, %d\r\n", bytesRead, bytesToRead * 2);
                 break;
             }
         }
@@ -2480,13 +2480,13 @@ void MiP::processOobResponseData(uint8_t commandByte)
         if (length < 2 || length > 4)
         {
             uint8_t discardedBytes = discardUnexpectedSerialData();
-            Serial1.printf("MiP: Bad IR code length: 0x%02x (discarded %d bytes)\n", length, discardedBytes);
+            Serial1.printf("MiP: Bad IR code length: 0x%02x (discarded %d bytes)\r\n", length, discardedBytes);
             return;
         }
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        Serial1.printf("MiP: Bad OOB command byte: 0x%02x (discarded %d bytes)\n", commandByte, discardedBytes);
+        Serial1.printf("MiP: Bad OOB command byte: 0x%02x (discarded %d bytes)\r\n", commandByte, discardedBytes);
         return;
     }
 
@@ -2497,7 +2497,7 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        Serial1.printf("MiP: OOB too short: %d, %d", bytesRead, length * 2);
+        Serial1.printf("MiP: OOB too short: %d, %d\r\n", bytesRead, length * 2);
         return;
     }
 
