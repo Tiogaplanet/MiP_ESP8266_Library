@@ -2166,6 +2166,23 @@ void MiP::sendIRDongleCode(uint16_t sendCode, uint8_t transmitPower)
     rawSend(command, sizeof(command));
 }
 
+void MiP::sendIRDongleCode(uint32_t sendCode, int8_t transmitBytes, uint8_t transmitPower)
+{
+    MIP_ASSERT(transmitBytes == 0x20 || transmitBytes == 0x18);
+
+    uint8_t command[1+6];
+    command[0] = MIP_CMD_SEND_IR_DONGLE_CODE;
+    command[1] = (sendCode >> 24) & 0xFF;
+    command[2] = (sendCode >> 16) & 0xFF;
+    command[3] = (sendCode >> 8) & 0xFF;
+    command[4] = sendCode & 0xFF;
+    command[5] = transmitBytes;
+    command[6] = transmitPower;
+
+    // Send this command blindly with no error checking since there is no robust way to determine if it has failed.
+    rawSend(command, sizeof(command));
+}
+
 uint32_t MiP::readIRDongleCode()
 {
     // Fetch bytes from the Serial receive buffer and process any event data found within.

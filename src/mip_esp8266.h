@@ -513,6 +513,7 @@ public:
     void     disableIRRemoteControl();
     bool     isIRRemoteControlEnabled();
     void     sendIRDongleCode(uint16_t sendCode, uint8_t transmitPower);
+    void     sendIRDongleCode(uint32_t sendCode, int8_t transmitBytes, uint8_t transmitPower);
     uint32_t readIRDongleCode();
     uint8_t  availableIRCodeEvents();
 
