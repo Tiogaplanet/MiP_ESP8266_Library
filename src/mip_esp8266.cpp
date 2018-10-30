@@ -162,9 +162,9 @@ void MiP::clear()
     m_detectedMiPEvents.clear();
     m_irCodeEvents.clear();
     m_irId = 0x00;
-    m_ssid[32] = {0}; 
-    m_password[64] = {0}; 
-    m_hostname[63] = {0}; 
+    m_ssid[0] = {0}; 
+    m_password[0] = {0}; 
+    m_hostname[0] = {0}; 
 }
 
 bool MiP::begin(const char* ssid, const char* password, const char* hostname)
