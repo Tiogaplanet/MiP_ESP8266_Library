@@ -151,7 +151,9 @@ void MiP::clear()
     m_expectedResponseCommand = 0;
     m_expectedResponseSize = 0;
     m_lastError = MIP_ERROR_NONE;
+    m_playCommand[0] = MIP_CMD_PLAY_SOUND;
     m_soundIndex = -1;
+    m_playVolume = MIP_VOLUME_OFF;
     m_lastRadar = MIP_RADAR_INVALID;
     m_lastStatus.clear();
     m_lastWeight = 0;
@@ -160,6 +162,9 @@ void MiP::clear()
     m_detectedMiPEvents.clear();
     m_irCodeEvents.clear();
     m_irId = 0x00;
+    m_ssid[32] = {0}; 
+    m_password[64] = {0}; 
+    m_hostname[63] = {0}; 
 }
 
 bool MiP::begin(const char* ssid, const char* password, const char* hostname)
@@ -1062,7 +1067,7 @@ void MiP::playSound(MiPSoundIndex sound, MiPVolume volume /* = MIP_VOLUME_DEFAUL
 void MiP::beginSoundList()
 {
     m_soundIndex = 0;
-    m_playVolume = 0xFF;
+    m_playVolume = MIP_VOLUME_DEFAULT;
     m_lastError = MIP_ERROR_NONE;
 }
 
