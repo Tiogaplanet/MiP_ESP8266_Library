@@ -18,7 +18,7 @@
 #include "mip_esp8266.h"
 
 
-// Number of times that begin() method should try to initialize the MiP.
+// Number of times that begin() method should try to initialize MiP.
 #define MIP_MAX_BEGIN_RETRIES 5
 
 // Number of milliseconds to wait between retries in begin().
@@ -33,8 +33,8 @@
 // Should timeout if expected response doesn't arrive back in this amount of time (in milliseconds).
 #define MIP_RESPONSE_TIMEOUT 100
 
-// Delay between requests sent to MiP (in milliseconds). If the user attempts to send requests to the MiP faster than
-// this, the library will busy wait and only continue with the request after this amount of time has passed. The MiP
+// Delay between requests sent to MiP (in milliseconds). If the user attempts to send requests to MiP faster than
+// this, the library will busy wait and only continue with the request after this amount of time has passed. MiP
 // will sometimes ignore requests sent faster than this.
 #define MIP_REQUEST_DELAY 8
 
@@ -58,7 +58,7 @@
 #define ESP8266_DEBUG_BAUD_RATE 74880
 
 // MiP Protocol Commands.
-// These command codes are placed in the first byte of requests sent to the MiP and responses sent back from the MiP.
+// These command codes are placed in the first byte of requests sent to MiP and in the responses sent back from MiP.
 // See https://github.com/WowWeeLabs/MiP-BLE-Protocol/blob/master/MiP-Protocol.md for more information.
 #define MIP_CMD_RECEIVE_IR_DONGLE_CODE  0x03
 #define MIP_CMD_GET_DETECTED_MIP        0x04
@@ -246,7 +246,7 @@ bool MiP::begin()
     // error is detected. If this wasn't done then the calls to rawSend() and rawGetStatus() below would fail.
     m_flags |= MRI_FLAG_INITIALIZED;
 
-    // Sometimes the init fails. It seems to happen when the MiP is busy at power-up doing other things like
+    // Sometimes the init fails. It seems to happen when MiP is busy at power-up doing other things like
     // attempting to balance.
     int8_t retry;
     for (retry = 0 ; retry < MIP_MAX_BEGIN_RETRIES ; retry++)
@@ -282,11 +282,11 @@ int8_t MiP::attemptMiPConnection(uint32_t baudRate)
     Serial.begin(baudRate);
     Serial.swap();
 
-    // Send 0xFF to the MiP via UART to enable the UART communication channel in the MiP.
+    // Send 0xFF to MiP via UART to enable MiP's UART communication channel.
     const uint8_t initMipCommand[] = { 0xFF };
     rawSend(initMipCommand, sizeof(initMipCommand));
 
-    // The MiP UART documentation indicates that this delay is required after sending 0xFF.
+    // MiP's UART documentation indicates that this delay is required after sending 0xFF.
     delay(30);
     // Flush any outstanding junk data in receive buffer.
     discardUnexpectedSerialData();
@@ -328,8 +328,8 @@ void MiP::end()
 
 void MiP::sleep()
 {
-    // Put the MiP to sleep.
-    // The MiP will need to be reset before another begin() will succeed.
+    // Put MiP to sleep.
+    // MiP will need to be reset before another begin() will succeed.
     const uint8_t command[] = { MIP_CMD_SLEEP };
     rawSend(command, sizeof(command));
 }
@@ -545,7 +545,7 @@ void MiP::writeChestLED(uint8_t red, uint8_t green, uint8_t blue)
 {
     int8_t result;
 
-    // The blue channel is actually only 6-bit and not a full 8-bit so zero out lower 2 bits (the MiP does this too).
+    // The blue channel is actually only 6-bit and not a full 8-bit so zero out lower 2 bits (MiP does this too).
     blue &= ~3;
 
     // Send the set command and then issue the corresponding get command. Retry if the get fails or doesn't return the
@@ -593,7 +593,7 @@ void MiP::writeChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTim
     onTime = (onTime + 10) / 20;
     offTime = (offTime + 10) / 20;
 
-    // The blue channel is actually only 6-bit and not a full 8-bit so zero out lower 2 bits (the MiP does this too).
+    // The blue channel is actually only 6-bit and not a full 8-bit so zero out lower 2 bits (MiP does this too).
     blue &= ~3;
 
     // Send the set command and then issue the corresponding get command. Retry if the get fails or doesn't return the
@@ -2325,7 +2325,7 @@ void MiP::transportSendRequest(const uint8_t* pRequest, size_t requestLength, in
     m_expectedResponseSize = 0;
     m_responseBuffer[0] = 0;
 
-    // Send the specified bytes to the MiP via the UART.
+    // Send the specified bytes to MiP via the UART.
     while (requestLength-- > 0)
     {
         Serial.write(*pRequest++);
@@ -2336,10 +2336,10 @@ void MiP::transportSendRequest(const uint8_t* pRequest, size_t requestLength, in
 
 int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBufferSize, size_t* pResponseLength)
 {
-    // Must call begin() and have it return 'true' before calling sending commands to the MiP.
+    // Must call begin() and have it return 'true' before calling sending commands to MiP.
     MIP_ASSERT( isInitialized() );
 
-    // Caller is attempting to get a response that is larger than support by the MiP and this library.
+    // Caller is attempting to get a response that is larger than is supported by MiP and this library.
     MIP_ASSERT( responseBufferSize <= MIP_RESPONSE_MAX_LEN);
 
     // UNDONE: I think it would be my bug if the following assert ever fired.
