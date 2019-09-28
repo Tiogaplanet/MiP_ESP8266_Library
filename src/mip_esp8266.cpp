@@ -123,7 +123,7 @@
 
 static void mipAssert(uint32_t lineNumber)
 {
-    Serial1.printf("MiP Assert: mip.cpp: %d\n", lineNumber);
+    Serial1.printf("MiP Assert: mip_esp8266.cpp: %d\n", lineNumber);
 
     while (1)
     {
