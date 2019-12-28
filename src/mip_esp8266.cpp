@@ -310,6 +310,9 @@ void MiP::end()
 {
     if (isInitialized())
     {
+        // Restore MiP's default volume in case it was changed by the user.
+        writeVolume(MIP_VOLUME_7);
+
         // Send the disconnect command.  If it is successful the app will be disconnected, indicated by a
         // blue chest LED.
         const uint8_t command[] = { MIP_CMD_DISCONNECT_APP };
@@ -324,6 +327,10 @@ void MiP::end()
 
     // Shutdown the debugging channel.
     Serial1.end();
+
+    // Put the D1 mini into deep sleep indefinitely.  MiP will need to be power cycled before the
+    // D1 mini will execute again.
+    ESP.deepSleep(0);
 }
 
 void MiP::sleep()
