@@ -1,8 +1,6 @@
 # MiP ESP8266 Library
 ![The D1 mini Pack mounted on MiP](https://github.com/Tiogaplanet/Experimenting-with-the-MiP/raw/master/images/IMG_5967_medium.JPG)
 
-[![Build Status](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library.svg?branch=master)](https://travis-ci.org/Tiogaplanet/MiP_ESP8266_Library) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2cc48b8fb3e9435fa7e3951f238a44f8)](https://www.codacy.com/app/Tiogaplanet/MiP_ESP8266_Library?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Tiogaplanet/MiP_ESP8266_Library&amp;utm_campaign=Badge_Grade)
-
 This project provides a library for the Arduino IDE and allows users to take control of [WowWee Labs'](https://github.com/WowWeeLabs/)  [MiP](https://wowwee.com/mip) and turn it into a cloud-connected robot.
 
 MiP is a hacker friendly self-balancing robot. WowWee not only provides the [MiP Protocol Specification on GitHub](https://github.com/WowWeeLabs/MiP-BLE-Protocol), they also provide a [4-pin hacker port](https://cdn.sparkfun.com/assets/learn_tutorials/2/8/5/HackingPortAnnotated.png), complete with JST connector, right on the mainboard. This connector makes it easy to connect an external controller such as [D1 mini](https://wiki.wemos.cc/products:d1:d1_mini) or compatible boards and take control of your MiP. Once connected, you can:
