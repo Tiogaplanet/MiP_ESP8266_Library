@@ -123,7 +123,7 @@
 
 static void mipAssert(uint32_t lineNumber)
 {
-    Serial1.printf("MiP Assert: mip_esp8266.cpp: %d\n", lineNumber);
+    MIP_DEBUG_ERROR_PRINTF("MiP Assert: mip_esp8266.cpp: %d\n", lineNumber);
 
     while (1)
     {
@@ -180,7 +180,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 
     while (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-        Serial1.println(F("MiP: Internet connection failed. Retrying..."));
+        MIP_DEBUG_WARN_PRINTLN(F("MiP: Internet connection failed. Retrying..."));
         WiFi.reconnect();
     }
 
@@ -195,36 +195,47 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
             type = "filesystem";
         }
         // NOTE: If updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end().
-        Serial1.println("MiP: Start updating " + type);
+        MIP_DEBUG_INFO_PRINT(F("MiP: Start updating "));
+        MIP_DEBUG_INFO_PRINTLN(type);
         });
     ArduinoOTA.onEnd([]() {
-        Serial1.println(F("\nEnd"));
+        MIP_DEBUG_INFO_PRINTLN(F("End"));
     });
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
+        MIP_DEBUG_INFO_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
     });
     ArduinoOTA.onError([](ota_error_t error) {
-        Serial1.printf("Error[%u]: ", error);
-        if (error == OTA_AUTH_ERROR) Serial1.println(F("Auth Failed"));
-        else if (error == OTA_BEGIN_ERROR) Serial1.println(F("Begin Failed"));
-        else if (error == OTA_CONNECT_ERROR) Serial1.println(F("Connect Failed"));
-        else if (error == OTA_RECEIVE_ERROR) Serial1.println(F("Receive Failed"));
-        else if (error == OTA_END_ERROR) Serial1.println(F("End Failed"));
+        MIP_DEBUG_ERROR_PRINTF("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR) {
+			MIP_DEBUG_ERROR_PRINTLN(F("Auth Failed"));
+		}
+        else if (error == OTA_BEGIN_ERROR) {
+			MIP_DEBUG_ERROR_PRINTLN(F("Begin Failed"));
+		}
+        else if (error == OTA_CONNECT_ERROR) {
+			MIP_DEBUG_ERROR_PRINTLN(F("Connect Failed"));
+		}
+        else if (error == OTA_RECEIVE_ERROR) {
+			MIP_DEBUG_ERROR_PRINTLN(F("Receive Failed"));
+		}
+        else if (error == OTA_END_ERROR) {
+			MIP_DEBUG_ERROR_PRINTLN(F("End Failed"));
+		}
     });
 
     ArduinoOTA.begin();
 
-    Serial1.printf("MiP: IP address: %d.%d.%d.%d\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    MIP_DEBUG_INFO_PRINTF("MiP: IP address: %d.%d.%d.%d\r\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified
     // domain name is "HappyMiP.local".
     if (!MDNS.begin(m_hostname)) {
-      Serial1.println(F("MiP: Error setting up mDNS responder."));
+      MIP_DEBUG_ERROR_PRINTLN(F("MiP: Error setting up mDNS responder."));
     }
     else
     {
-      Serial1.printf("MiP: mDNS responder started with hostname of %s.local\n", m_hostname);
+      MIP_DEBUG_INFO_PRINTF("MiP: mDNS responder started with hostname of %s.local\r\n", m_hostname);
     }
 
     return returnValue;
@@ -296,7 +307,7 @@ int8_t MiP::attemptMiPConnection(uint32_t baudRate)
     if (result == MIP_ERROR_NONE)
     {
         // Let the user know at which baud rate the connection to MiP was made.
-        Serial1.printf("\rMiP: Connected at %d baud\n\r", baudRate);
+        MIP_DEBUG_INFO_PRINTF("MiP: Connected at %d baud\n\r", baudRate);
     }
     else
     {
@@ -347,23 +358,23 @@ void MiP::printLastCallResult()
 {
     if (m_lastError != MIP_ERROR_NONE)
     {
-        Serial1.print(F("MiP: API returned "));
+        MIP_DEBUG_ERROR_PRINT(F("MiP: API returned "));
         switch (m_lastError)
         {
         case MIP_ERROR_TIMEOUT:
-            Serial1.println(F("MIP_ERROR_TIMEOUT (Timed out waiting for response)"));
+            MIP_DEBUG_ERROR_PRINTLN(F("MIP_ERROR_TIMEOUT (Timed out waiting for response)"));
             break;
         case MIP_ERROR_NO_EVENT:
-            Serial1.println(F("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)"));
+            MIP_DEBUG_ERROR_PRINTLN(F("MIP_ERROR_NO_EVENT (No event has arrived from MiP yet)"));
             break;
         case MIP_ERROR_BAD_RESPONSE:
-            Serial1.println(F("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)"));
+            MIP_DEBUG_ERROR_PRINTLN(F("MIP_ERROR_BAD_RESPONSE (Unexpected response from MiP)"));
             break;
         case MIP_ERROR_MAX_RETRIES:
-            Serial1.println(F("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)"));
+            MIP_DEBUG_ERROR_PRINTLN(F("MIP_ERROR_MAX_RETRIES (Exceeded maximum number of retries to get this operation to succeed)"));
             break;
         default:
-            Serial1.println(F("unknown error"));
+            MIP_DEBUG_ERROR_PRINTLN(F("unknown error"));
             break;
         }
     }
@@ -2347,7 +2358,7 @@ int8_t MiP::transportGetResponse(uint8_t* pResponseBuffer, size_t responseBuffer
     if (!responseFound)
     {
         // Never received the expected response within the timeout window.
-        Serial1.println(F("MiP: Response timeout"));
+        MIP_DEBUG_WARN_PRINTLN(F("MiP: Response timeout"));
         return MIP_ERROR_TIMEOUT;
     }
 
@@ -2397,7 +2408,7 @@ bool MiP::processAllResponseData()
                 m_expectedResponseCommand = 0;
                 m_expectedResponseSize = 0;
                 m_responseBuffer[0] = 0;
-                Serial1.printf("MiP: Response too short: %d, %d\n", bytesRead, bytesToRead * 2);
+                MIP_DEBUG_ERROR_PRINTF("MiP: Response too short: %d, %d\n", bytesRead, bytesToRead * 2);
                 break;
             }
         }
@@ -2468,20 +2479,20 @@ void MiP::processOobResponseData(uint8_t commandByte)
         bytesRead = Serial.readBytes(nibbles, sizeof(nibbles));
         if (bytesRead != sizeof(nibbles))
         {
-            Serial1.println(F("MiP: Missing IR code length"));
+            MIP_DEBUG_ERROR_PRINTLN(F("MiP: Missing IR code length"));
             return;
         }
         length = (parseHexDigit(nibbles[0]) << 4) | parseHexDigit(nibbles[1]);
         if (length < 2 || length > 4)
         {
             uint8_t discardedBytes = discardUnexpectedSerialData();
-            Serial1.printf("MiP: Bad IR code length: 0x%02x (discarded %d bytes)\n", length, discardedBytes);
+            MIP_DEBUG_ERROR_PRINTF("MiP: Bad IR code length: 0x%02x (discarded %d bytes)\n", length, discardedBytes);
             return;
         }
         break;
     default:
         uint8_t discardedBytes = discardUnexpectedSerialData();
-        Serial1.printf("MiP: Bad OOB command byte: 0x%02x (discarded %d bytes)\n", commandByte, discardedBytes);
+        MIP_DEBUG_ERROR_PRINTF("MiP: Bad OOB command byte: 0x%02x (discarded %d bytes)\n", commandByte, discardedBytes);
         return;
     }
 
@@ -2492,7 +2503,7 @@ void MiP::processOobResponseData(uint8_t commandByte)
 
     if (bytesRead != length * 2)
     {
-        Serial1.printf("MiP: OOB too short: %d, %d", bytesRead, length * 2);
+        MIP_DEBUG_ERROR_PRINTF("MiP: OOB too short: %d, %d", bytesRead, length * 2);
         return;
     }
 

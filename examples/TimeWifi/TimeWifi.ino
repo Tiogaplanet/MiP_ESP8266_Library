@@ -26,6 +26,13 @@ MiP         mip;                              // We need a single MiP object
 bool        connectResult;                    // Test whether a connection to MiP was established.
 
 void setup() {
+  connectResult = mip.begin(ssid, password, hostname);
+
+  if (!connectResult) {
+    Serial1.println(F("TimeWifi: Failed connecting to MiP."));
+    return;
+  }
+
   configTime(-4 * 3600, 0, "pool.ntp.org", "time.nist.gov");
   Serial1.println("\nWaiting for time");
   while (!time(nullptr)) {
