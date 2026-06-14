@@ -27,6 +27,47 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+
+// Setup some debug levels for reporting library status via Serial1.
+#define MIP_DEBUG_NONE 0
+#define MIP_DEBUG_ERROR 1
+#define MIP_DEBUG_WARN 2
+#define MIP_DEBUG_INFO 3
+
+// Default to NONE if not defined by the user in the sketch.
+#ifndef MIP_DEBUG_LEVEL
+  #define MIP_DEBUG_LEVEL MIP_DEBUG_NONE
+#endif
+
+// Create the macros for conditional printing of debug messages via Serial1.
+#if MIP_DEBUG_LEVEL >= MIP_DEBUG_ERROR
+  #define MIP_DEBUG_ERROR_PRINT(...)   Serial1.print(F("[ERROR] ")); Serial1.print(__VA_ARGS__)
+  #define MIP_DEBUG_ERROR_PRINTLN(...) Serial1.print(F("[ERROR] ")); Serial1.println(__VA_ARGS__)
+  #define MIP_DEBUG_ERROR_PRINTF(...)  Serial1.print(F("[ERROR] ")); Serial1.printf(__VA_ARGS__)
+#else
+  #define MIP_DEBUG_ERROR_PRINT(...)
+  #define MIP_DEBUG_ERROR_PRINTLN(...)
+  #define MIP_DEBUG_ERROR_PRINTF(...)
+#endif
+#if MIP_DEBUG_LEVEL >= MIP_DEBUG_WARN
+  #define MIP_DEBUG_WARN_PRINT(...)   Serial1.print(F("[WARN] ")); Serial1.print(__VA_ARGS__)
+  #define MIP_DEBUG_WARN_PRINTLN(...) Serial1.print(F("[WARN] ")); Serial1.println(__VA_ARGS__)
+  #define MIP_DEBUG_WARN_PRINTF(...)  Serial1.print(F("[WARN] ")); Serial1.printf(__VA_ARGS__)
+#else
+  #define MIP_DEBUG_WARN_PRINT(...)
+  #define MIP_DEBUG_WARN_PRINTLN(...)
+  #define MIP_DEBUG_WARN_PRINTF(...)
+#endif
+#if MIP_DEBUG_LEVEL >= MIP_DEBUG_INFO
+  #define MIP_DEBUG_INFO_PRINT(...)   Serial1.print(F("[INFO] ")); Serial1.print(__VA_ARGS__)
+  #define MIP_DEBUG_INFO_PRINTLN(...) Serial1.print(F("[INFO] ")); Serial1.println(__VA_ARGS__)
+  #define MIP_DEBUG_INFO_PRINTF(...)  Serial1.print(F("[INFO] ")); Serial1.printf(__VA_ARGS__)
+#else
+  #define MIP_DEBUG_INFO_PRINT(...)
+  #define MIP_DEBUG_INFO_PRINTLN(...)
+  #define MIP_DEBUG_INFO_PRINTF(...)
+#endif
+
 // Integer error codes that can be encountered by MiP API functions.
 #define MIP_ERROR_NONE          0 // Success
 #define MIP_ERROR_TIMEOUT       1 // Timed out waiting for response.
