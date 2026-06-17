@@ -2239,7 +2239,7 @@ void MiP::verifiedIRRemoteControl(uint8_t desiredRemoteControlMode)
 
     if (result != MIP_ERROR_NONE)
     {
-        // Kept getting an error back from rawGetGameMode().
+        // Kept getting an error back from rawGetIRRemoteControl().
         m_lastError = result;
     }
     else
