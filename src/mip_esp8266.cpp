@@ -1435,14 +1435,14 @@ int8_t MiP::readWeight()
     }
 
     m_lastError = result;
-    return 0.0f;
+    return 0;
 }
 
 // This internal protected method sends the get weight command with minimal error handling. The error
 // recovery happens at a higher level of the driver.
 int8_t MiP::rawGetWeight(int8_t& weight)
 {
-    const uint8_t getWeight[1] = { MIP_CMD_GET_WEIGHT };
+    const uin8_t getWeight[1] = { MIP_CMD_GET_WEIGHT };
     uint8_t       response[1+1];
     size_t        responseLength;
     int           result;
