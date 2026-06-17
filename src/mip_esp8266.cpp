@@ -241,6 +241,14 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     return returnValue;
 }
 
+/**
+ * @brief Initializes the MiP robot serial interface.
+ * * @note HARDWARE LIMITATION: The ESP8266 outputs bootloader logs at 74880 baud 
+ * on GPIO1 (TX) instantly at power-on. This chatter can flood and lock up the 
+ * MiP's serial buffer before the 0xFF wake-up sequence transmits. 
+ * If initialization consistently fails, ensure the ESP8266 boots completely 
+ * before the MiP UART interface is engaged, or modify hardware to use SoftwareSerial.
+ */
 bool MiP::begin()
 {
     // Setup the debugging channel.
