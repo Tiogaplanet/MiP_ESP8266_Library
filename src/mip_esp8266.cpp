@@ -627,8 +627,8 @@ void MiP::writeChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTim
             actualChestLED.red == red &&
             actualChestLED.green == green &&
             actualChestLED.blue == blue &&
-            actualChestLED.onTime / 20 == onTime &&
-            actualChestLED.offTime / 20 == offTime)
+            actualChestLED.onTime == onTime &&
+            actualChestLED.offTime == offTime)
         {
             // The set was successful so return immediately.
             m_lastError = MIP_ERROR_NONE;
