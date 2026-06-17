@@ -29,3 +29,12 @@ A very thorough guide to using the MiP_ESP8266_Library is provided in the [wiki]
 
 ## Contributing
 This project is intended to make programming MiP easy and fun.  To that end, contributions are highly encouraged!  Please see [CONTRIBUTING.md](https://github.com/Tiogaplanet/MiP_ESP8266_Library/blob/master/CONTRIBUTING.md) for more information.
+
+## Known Limitations & Hardware Restrictions
+
+### ⚠️ ESP8266 Bootloader Serial Chatter (UART Lockup)
+When using this library with native hardware serial pins (`TX`/`RX` / GPIO1/GPIO3), you might experience lockup behavior where the MiP robot fails to respond upon powering up both boards simultaneously.
+
+* **The Cause:** The ESP8266 architecture automatically broadcasts first-stage bootloader log messages at **74880 baud** on the hardware TX pin the exact millisecond power is applied. Because this library communicates over those same pins, this "garbage" data floods the MiP robot's UART buffer before the library can execute the standard `0xFF` wake-up sequence.
+* **The Workaround:** 1. **Power Sequencing:** Power on or reset the ESP8266 *before* powering on or connecting the MiP robot's RX lines, ensuring the boot chatter has finished.
+  2. **Alternative Wiring:** Modify your hardware implementation to utilize `SoftwareSerial` on noise-free GPIO pins instead of the primary hardware UART pins.
