@@ -735,7 +735,7 @@ int8_t MiP::rawGetChestLED(MiPChestLED& chestLED)
     const uint8_t getChestLED[1] = { MIP_CMD_GET_CHEST_LED };
     uint8_t       response[1+5];
     size_t        responseLength;
-    int           result;
+    uint8_t       result;
 
     chestLED.clear();
     result = rawReceive(getChestLED, sizeof(getChestLED), response, sizeof(response), responseLength);
@@ -1442,10 +1442,10 @@ int8_t MiP::readWeight()
 // recovery happens at a higher level of the driver.
 int8_t MiP::rawGetWeight(int8_t& weight)
 {
-    const uin8_t getWeight[1] = { MIP_CMD_GET_WEIGHT };
+    const uint8_t getWeight[1] = { MIP_CMD_GET_WEIGHT };
     uint8_t       response[1+1];
     size_t        responseLength;
-    int           result;
+    uint8_t       result;
 
     weight = 0.0f;
     result = rawReceive(getWeight, sizeof(getWeight), response, sizeof(response), responseLength);
