@@ -40,10 +40,11 @@ const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394. Charleston, South Carolina is 4574324. Newcastle upon Tyne, GB is 2641673.
-const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+// Montreal, Canada: 6077243.
+const String OPEN_WEATHER_MAP_LOCATION_ID = "6077243";
 
 // Set any hostname you desire.
-const char* hostname = "MiP-0x01";
+const char* hostname = "MiP-Weatherman";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,17 +140,7 @@ void setup() {
   mip.enableClapEvents();
   mip.writeClapDelay(1000);
 
-  SPIFFS.begin();
-
-  // Read the default weather location from SPIFFS.
-  locationLine = readLocation();
-  if (locationLine.length() == 0) {
-    Serial1.println(F("Using default location."));
-    saveLocation(OPEN_WEATHER_MAP_LOCATION_ID);
-  }
-  locationLine = readLocation();
-
-  updateWeatherById(locationLine);
+  updateWeatherById(OPEN_WEATHER_MAP_LOCATION_ID);
 }
 
 
