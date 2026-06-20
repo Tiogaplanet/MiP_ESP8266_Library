@@ -30,7 +30,7 @@ void setup() {
 
   Serial1.println(F("ChestLED.ino - Set Chest LED to different colors.\n"));
 
-  Serial1.println(F("Set chest LED to magenta."));
+  Serial1.println(F("Set chest LED to magenta, no time specified."));
   uint8_t red = 0xff;
   uint8_t green = 0x01;
   uint8_t blue = 0xfe;
@@ -38,7 +38,7 @@ void setup() {
   printCurrentChestLEDSetting();
   delay(1000);
 
-  Serial1.println(F("Set chest LED to blink red."));
+  Serial1.println(F("Set chest LED to blink red, on time: 990, off time: 989."));
   red = 0xff;
   green = 0x01;
   blue = 0x05;
@@ -48,7 +48,7 @@ void setup() {
   printCurrentChestLEDSetting();
   delay(4000);
 
-  Serial1.println(F("Set chest LED back to green."));
+  Serial1.println(F("Set chest LED back to green, no time specified."));
   MiPChestLED chestLED;
   chestLED.red = 0x00;
   chestLED.green = 0xff;
@@ -61,21 +61,21 @@ void setup() {
 
   // Attempt to run through the same sequence of chest LED changes using the 
   // unverifiedWriteChestLED() functions which don't always get accepted by MiP.
-  Serial1.println(F("Trying to set chest LED to magenta."));
+  Serial1.println(F("Trying to set chest LED to magenta, no time specified."));
   red = 0xff;
   green = 0x01;
   blue = 0xfe;
   mip.unverifiedWriteChestLED(red, green, blue);
   delay(1000);
 
-  Serial1.println(F("Trying to set chest LED to blink red."));
+  Serial1.println(F("Trying to set chest LED to blink red, no time specified."));
   red = 0xff;
   green = 0x01;
   blue = 0x05;
   mip.unverifiedWriteChestLED(red, green, blue, onTime, offTime);
   delay(4000);
 
-  Serial1.println(F("Trying to set chest LED back to green."));
+  Serial1.println(F("Trying to set chest LED back to green, no time specified."));
   chestLED.red = 0x00;
   chestLED.green = 0xff;
   chestLED.blue = 0x00;
