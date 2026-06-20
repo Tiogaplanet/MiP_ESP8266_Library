@@ -50,8 +50,9 @@ void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String url
   parser.setListener(this);
   Serial1.printf("Getting url: %s\n", url.c_str());
   HTTPClient http;
+  WiFiClient client;
 
-  http.begin(url);
+  http.begin(client, url);
 
   Serial1.print("[HTTP] GET...\n");
   // start connection and send HTTP header

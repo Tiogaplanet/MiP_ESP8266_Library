@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch turns MiP into a weather person and provides the
+// This example sketch turns MiP into a meteorologist and provides the
 // weather data to a web client.
 #include <mip_esp8266.h>
 #include <JsonListener.h>
@@ -20,9 +20,8 @@
 #include <FS.h>
 #include <ESP8266WebServer.h>
 #include "OpenWeatherMapCurrent.h"
-#include <WiFiClientSecure.h>
 
-// The following four variables must be configured by the user for the sketch to work. ///////////////
+// The following three variables must be configured by the user for the sketch to work. //////////////
 
 // Enter the SSID for your wifi network.
 const char* ssid = "..............";
@@ -35,32 +34,23 @@ const char* password = "..............";
 // for more information.
 const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
 
-// The Base64 encoded version of your Gmail login credentials.
-const char* credentials = "bWlwQGdtYWlsLmNvbTpBIHZlcnkgbG9uZyBwYXNzd29yZCwgaW5kZWVkLg==";
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // The following two variables can be configured to the user's preference. //////////////////////////
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394. Charleston, South Carolina is 4574324. Newcastle upon Tyne, GB is 2641673.
-const String OPEN_WEATHER_MAP_LOCATION_ID = "3172394";
+// Montreal, Canada: 6077243.
+const String OPEN_WEATHER_MAP_LOCATION_ID = "6077243";
 
 // Set any hostname you desire.
-const char* hostname = "MiP-0x02";
-
+const char* hostname = "MiP-Meteorologist";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // No other changes need to be made.
 
-// The weather data set is big and doesn't always come down in one request.
 #define HTTP_RETRIES 3
-
-// Define some on and off times to flash the chest LED.
-#define ON_TIME 1000
-#define OFF_TIME 700
 
 // MiP variables.
 MiP         mip;                              // We need a single MiP object
@@ -89,7 +79,7 @@ unsigned long previousEyesMillis = 0;
 // Track MiP's position.  MiP roams while upright and reports the weather when on the kickstand.
 MiPPosition lastPosition = (MiPPosition) - 1;
 
-// These variables are for the weather station features.
+// The rest of these variables are for the weather station features.
 
 // Initiate the client for the OpenWeatherMap API.
 OpenWeatherMapCurrent client;
@@ -122,39 +112,16 @@ void handleNotFound();
 // For form validation when searching for a new city.
 boolean searchError = false;
 
-// The rest of these variables are for email notifications.
-
-// The Gmail server.
-const char* host = "mail.google.com";
-
-// The Gmail feed URL.
-const char* url = "/mail/feed/atom";
-
-// The port to connect to the email server.
-const int httpsPort = 443;
-
-// Keep track of new and older, unread emails.
-int latestUnread;
-int lastUnread;
-
-// Store the last time Gmail was queried.
-unsigned long previousMailMillis = 0;
-
-// Check Gmail every minute (60000 milliseconds).
-const long mailInterval = 60000;
-
 
 void setup() {
-  // Establish the WiFi connection and connect to MiP.
+  // Establish the WiFi connection.
   connectResult = mip.begin(ssid, password, hostname);
 
+  // Connect the ESP8266 to MiP.
   if (!connectResult) {
     Serial1.println(F("Failed connecting to MiP."));
     return;
   }
-
-  // Quiet, MiP!
-  mip.writeVolume(MIP_VOLUME_OFF);
 
   // We'll need a random number generator for a few things such as animating the eyes in conditions of rain
   // and choosing random sounds.
@@ -173,21 +140,7 @@ void setup() {
   mip.enableClapEvents();
   mip.writeClapDelay(1000);
 
-  SPIFFS.begin();
-
-  // Read the default weather location from SPIFFS.
-  locationLine = readLocation();
-  if (locationLine.length() == 0) {
-    Serial1.println(F("Using default location."));
-    saveLocation(OPEN_WEATHER_MAP_LOCATION_ID);
-  }
-  locationLine = readLocation();
-
-  updateWeatherById(locationLine);
-
-  // Check email for the first time.
-  latestUnread = lastUnread = getUnread();
-  previousMailMillis = millis();
+  updateWeatherById(OPEN_WEATHER_MAP_LOCATION_ID);
 }
 
 
@@ -201,13 +154,6 @@ void loop() {
     updateWeatherById(locationLine);
     chestValuesWritten = false;
     previousMillis = currentMillis;
-  }
-
-  // Check the mail too.
-  unsigned long currentMailMillis = millis();
-  if (currentMailMillis - previousMailMillis >= mailInterval) {
-    latestUnread = getUnread();
-    previousMailMillis = currentMailMillis;
   }
 
   MiPPosition        currentPosition = mip.readPosition();
@@ -274,7 +220,6 @@ void loop() {
       }
     }
 
-    // Unless MiP's chest and eyes have been extinguished with a clap, show weather and mail status.
     if (!extinguished) {
       if (data.description.indexOf("rain") >= 0) { // Animate the eyes to indicate rain.
         // Randomly write values to MiP's eyes to indicate rain.  Writes are done once every eyesRainInterval.
@@ -307,12 +252,7 @@ void loop() {
 
       // Update the chest LED.
       if (!chestValuesWritten) {
-        chestValuesWritten = updateChestLEDForWeather();
-      }
-
-      // If latestUnread and lastUnread differ, the chest LED needs to be updated for mail.
-      if (latestUnread != lastUnread) {
-        updateChestLEDForMail();
+        chestValuesWritten = updateChestLED();
       }
     }
   }
@@ -517,7 +457,7 @@ void updateWeatherByName(const String cityName) {
 
 // Set MiP's chest to indicate the current temperature using the algorithm, not the values, from:
 // https://sjackm.wordpress.com/2012/03/26/visualizing-temperature-as-color-using-an-rgb-led-a-lm35-sensor-and-arduino/
-bool updateChestLEDForWeather() {
+bool updateChestLED() {
   if (data.temp) {
     // Range of blue.
     if (data.temp <= 32) {
@@ -555,44 +495,13 @@ bool updateChestLEDForWeather() {
       red = 255;
     }
 
-    MiPChestLED chestLED;
-    mip.readChestLED(chestLED);
-
     // Write it to the chest LED.
-    if (chestLED.onTime == ON_TIME) {
-      mip.writeChestLED(red, green, blue, ON_TIME, OFF_TIME);
-    } else {
-      mip.writeChestLED(red, green, blue);
-    }
+    mip.writeChestLED(red, green, blue);
   } else {
     return false;
   }
 
   return true;
-}
-
-// Flash the chest LED if new mail arrives.  This function preserves the color of the chest LED.
-void updateChestLEDForMail() {
-  MiPChestLED chestLED;
-  mip.readChestLED(chestLED);
-
-  if (latestUnread > lastUnread) {
-    Serial1.printf("You have %d new email%s and %d older, unread email%s.\n",
-                   latestUnread - lastUnread, latestUnread - lastUnread == 1 ? "" : "s", lastUnread, lastUnread == 1 ? "" : "s");
-    // If the chest is already flashing, don't write to it again.
-    if (chestLED.offTime != OFF_TIME) {
-      // flash the chest to indicate new email.
-      mip.writeChestLED(chestLED.red, chestLED.green, chestLED.blue, ON_TIME, OFF_TIME);
-    }
-  } else if (latestUnread < lastUnread) {
-    // User either read or deleted unread emails, so stop indicating new email.
-    Serial1.printf("You have %d unread message%s.\r\n", latestUnread, latestUnread == 1 ? "" : "s");
-    // Set the chest LED to solid green.
-    mip.writeChestLED(chestLED.red, chestLED.green, chestLED.blue);
-  } else if (latestUnread == -1) {
-    Serial1.println(F("I could not access your email. I'll try again in a minute."));
-  }
-  lastUnread = latestUnread;
 }
 
 // Handle calls from the web client to the web server.
@@ -622,7 +531,7 @@ void handleRoot() {
             locationLine = data.cityId;
             searchError = false;
             if (!extinguished) {
-              updateChestLEDForWeather();
+              updateChestLED();
             }
           }
         } else {
@@ -631,7 +540,7 @@ void handleRoot() {
           locationLine = server.arg(i);
           searchError = false;
           if (!extinguished) {
-            updateChestLEDForWeather();
+            updateChestLED();
           }
         }
       }
@@ -841,15 +750,6 @@ String htmlWeatherData() {
   } else if (!extinguished) {
     htmlOutput += "</h3>\n";
     htmlOutput += chestHTML(red, green, blue);
-    MiPChestLED chestLED;
-    mip.readChestLED(chestLED);
-    if(chestLED.onTime == ON_TIME) {
-      htmlOutput += "<p>";
-      char mailMessage[30];
-      sprintf(mailMessage, "You have %d new email%s.", latestUnread, latestUnread == 1 ? "" : "s");
-      htmlOutput += mailMessage;
-      htmlOutput += "</p>\n";
-    }
   }
   htmlOutput += "<hr />";
 
@@ -902,44 +802,5 @@ String chestHTML(const uint8_t redHTML, const uint8_t greenHTML, const uint8_t b
   chestHTML += "</script>\n";
 
   return chestHTML;
-}
-
-// Get the number of unread emails in your Gmail inbox.
-int getUnread() {
-  // Use WiFiClientSecure class to create a TLS (HTTPS) connection.
-  WiFiClientSecure client;
-  Serial1.printf("Connecting to %s:%d ... \r\n", host, httpsPort);
-  // Connect to the Gmail server on port 443.
-  if (!client.connect(host, httpsPort)) {
-    // If the connection fails, stop and return.
-    Serial1.println(F("Connection failed."));
-    return -1;
-  }
-
-  Serial1.printf("Requesting URL: %s%s\n", host, url);
-
-  // Send the HTTP request headers.
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Authorization: Basic " + credentials + "\r\n" +
-               "User-Agent: ESP8266\r\n" +
-               "Connection: close\r\n\r\n");
-
-  Serial1.println(F("Request sent."));
-
-  int unread = -1;
-
-  while (client.connected()) {                          // Wait for the response. The response is in XML format
-    client.readStringUntil('<');                        // read until the first XML tag
-    String tagname = client.readStringUntil('>');       // read until the end of this tag to get the tag name
-    if (tagname == "fullcount") {                       // if the tag is <fullcount>, the next string will be the number of unread emails
-      String unreadStr = client.readStringUntil('<');   // read until the closing tag (</fullcount>)
-      unread = unreadStr.toInt();                       // convert from String to int
-      break;                                            // stop reading
-    }                                                   // if the tag is not <fullcount>, repeat and read the next tag
-  }
-  Serial1.println(F("Connection closed."));
-
-  return unread;
 }
 

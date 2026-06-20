@@ -12,13 +12,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch turns MiP into a weather person and writes the
-// weather data to telnet.
+// This example sketch turns MiP into a meteorologist and provides the
+// weather data to a web client.
 #include <mip_esp8266.h>
-#include <mip_debug.h>
 #include <JsonListener.h>
 #include <time.h>
 #include "OpenWeatherMapCurrent.h"
+
+// Include the WebServer library.
+#include <ESP8266WebServer.h>
 
 // Initiate the client for the OpenWeatherMap API.
 OpenWeatherMapCurrent client;
@@ -42,12 +44,10 @@ const char* ssid = "..............";
 const char* password = "..............";
 
 // Set any hostname you desire.
-const char* hostname = "MiP-0x01";
+const char* hostname = "MiP-Meteorologist";
 
-MiP         mip;
-bool        connectResult;
-
-MiPDebug debug;
+MiP         mip;                              // We need a single MiP object
+bool        connectResult;                    // Test whether a connection to MiP was established.
 
 // For the chest LED.
 uint8_t red, green, blue = 0;
@@ -65,8 +65,15 @@ OpenWeatherMapCurrentData data;
 // Don't update the eyes if they're already solid.
 bool lastUpdatedToSolid = false;
 
-// Write the weather data to telnet every 15 minutes.
-bool debugDataToTelnet = false;
+// Set web server port number to 80.
+ESP8266WebServer server(80);
+
+// Variable in which to store the HTTP request.
+String header;
+
+// function prototypes for HTTP handlers.
+void handleRoot();
+void handleNotFound();
 
 void setup() {
   connectResult = mip.begin(ssid, password, hostname);
@@ -76,25 +83,28 @@ void setup() {
     return;
   }
 
-  debug.begin(hostname);
-
   // We'll need a random number generator to animate the eyes in conditions of rain.
   randomSeed(analogRead(A0));
 
-  // Get the weather for the first time.
+  // Call the 'handleRoot' function when a client requests URI "/".
+  server.on("/", handleRoot);
+
+  // When a client requests an unknown URI (i.e. something other than "/"), call function "handleNotFound."
+  server.onNotFound(handleNotFound);
+
+  // Start the web server.
+  server.begin();
+
   updateWeather();
 }
 
 void loop() {
   ArduinoOTA.handle();
 
-  // Now, get the weather every 15 minutes.
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
-    // Call the function to read from OpenWeatherMap.
     updateWeather();
     chestValuesWritten = false;
-    debugDataToTelnet = false;
     previousMillis = currentMillis;
   }
 
@@ -107,21 +117,16 @@ void loop() {
     lastUpdatedToSolid = true;
   }
 
+  // Don't update the eyes too fast or you'll get MiP timeout errors.
+  delay(800);
+
   // Update the chest LED if it hasn't been done in the last 15 minutes.
   if (!chestValuesWritten) {
     chestValuesWritten = updateChestLED();
   }
 
-  // Write to telnet if it hasn't been done in the last 15 minutes.
-  if (!debugDataToTelnet) {
-    debugDataToTelnet = debugToTelnet();
-  }
-
-  // Don't update the eyes too fast or you'll get MiP timeout errors.
-  delay(800);
-
-  // Write to telnet.
-  debug.handle();
+  // Listen for HTTP requests from clients.
+  server.handleClient();
 }
 
 // Read the weather from OpenWeatherMap.
@@ -180,38 +185,57 @@ bool updateChestLED() {
   return true;
 }
 
-// Setup the debug data to send to telnet.
-bool debugToTelnet() {
-  mDebugI("---------------------------------------------------\n\r");
-  mDebugI("City: %s\n\r", data.cityName.c_str());
-  mDebugI("Country: %s\n\r", data.country.c_str());
-  mDebugI("Longitude: %f\n\r", data.lon);
-  mDebugI("Latitude: %f\n\r", data.lat);
-  time_t time = data.observationTime;
-  mDebugI("Observation time: %s\r", ctime(&time));
-  mDebugI("Weather ID: %d\n\r", data.weatherId);
-  mDebugI("Main: %s\n\r", data.main.c_str());
-  mDebugI("Description: %s\n\r", data.description.c_str());
-  mDebugI("Icon: %s\n\r", data.icon.c_str());
-  mDebugI("IconMeteoCon: %s\n\r", data.iconMeteoCon.c_str());
-  mDebugI("Temperature: %f\n\r", data.temp);
-  mDebugI("Pressure: %d\n\r", data.pressure);
-  mDebugI("Humidity: %d\n\r", data.humidity);
-  mDebugI("Temperature minimum: %f\n\r", data.tempMin);
-  mDebugI("Temperature maximum: %f\n\r", data.tempMax);
-  mDebugI("Wind speed: %f\n\r", data.windSpeed);
-  mDebugI("Wind degrees: %f\n\r", data.windDeg);
-  mDebugI("Clouds: %d\n\r", data.clouds);
-  time = data.sunrise;
-  mDebugI("Sunrise: %s\r", ctime(&time));
-  time = data.sunset;
-  mDebugI("Sunset: %s\r", ctime(&time));
-  mDebugI("---------------------------------------------------\n\r");
-  mDebugI("Chest LED values: \n\r");
-  mDebugI("Red: %d\n\r", red);
-  mDebugI("Green: %d\n\r", green);
-  mDebugI("Blue: %d\n\r", blue);
+void handleRoot() {
+  String htmlOutput = "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n";
+  htmlOutput += "<title>MiP, the Weather Person</title>\n";
+  htmlOutput += "<style>\n";
+  htmlOutput += "body {background-color: powderblue;}\n";
+  htmlOutput += "h1   {color: blue; font-family: Arial, Helvetica, sans-serif; font-size: 120%;}\n";
+  htmlOutput += "p    {color: black; font-family: Arial, Helvetica, sans-serif;}\n";
+  htmlOutput += "</style>\n";
+  htmlOutput += "</head>\n<body>\n";
+  htmlOutput += "<div class=\"Weather\">\n";
+  htmlOutput += "<h1>Weather data courtesy of OpenWeatherMap</h1>\n";
+  htmlOutput += "<p>City: " + data.cityName + "<br>\n";
+  htmlOutput += "Country: " + data.country + "<br>\n";
 
-  return true;
+  htmlOutput += "Longitude: " + String(data.lon) + "<br>\n";
+  htmlOutput += "Latitude: " + String(data.lat) + "<br>\n";
+  time_t time = data.observationTime;
+  htmlOutput += "Observation time: " + String(ctime(&time)) + "<br>\n";
+  htmlOutput += "Weather ID: " + String(data.weatherId) + "<br>\n";
+  htmlOutput += "Main: " + data.main + "<br>\n";
+  htmlOutput += "Description: " + data.description + "<br>\n";
+  htmlOutput += "Icon: " + data.icon + "<br>\n";
+  htmlOutput += "IconMeteoCon: " + data.iconMeteoCon + "<br>\n";
+  htmlOutput += "Temperature: " + String(data.temp) + "<br>\n";
+  htmlOutput += "Pressure: " + String(data.pressure) + "<br>\n";
+  htmlOutput += "Humidity: " + String(data.humidity) + "<br>\n";
+  htmlOutput += "Temperature minimum: " + String(data.tempMin) + "<br>\n";
+  htmlOutput += "Temperature maximum: " + String(data.tempMax) + "<br>\n";
+  htmlOutput += "Wind speed: " + String(data.windSpeed) + "<br>\n";
+  htmlOutput += "Wind degrees: " + String(data.windDeg) + "<br>\n";
+  htmlOutput += "Clouds: " + String(data.clouds) + "<br>\n";
+  time = data.sunrise;
+  htmlOutput += "Sunrise: " + String(ctime(&time)) + "<br>\n";
+  time = data.sunset;
+  htmlOutput += "Sunset: " + String(ctime(&time)) + "<br>\n";
+  htmlOutput += "</p>\n</div>\n";
+
+  // Show the RGB values for the chest LED.
+  htmlOutput += "<div class=\"Chest LED\">\n";
+  htmlOutput += "<h1>Chest LED</h1>\n";
+  htmlOutput += "<p>Red: " + String(red) + "<br>\n";
+  htmlOutput += "Green: " + String(green) + "<br>\n";
+  htmlOutput += "Blue: " + String(blue) + "<br>\n";
+  htmlOutput += "</p>\n</div>\n</body>\n</html>\n";
+
+  // Send HTTP status 200 (Ok) and the page to the client.
+  server.send(200, "text/html", htmlOutput);
+}
+
+void handleNotFound() {
+  // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request.
+  server.send(404, "text/plain", "404: Not found");
 }
 

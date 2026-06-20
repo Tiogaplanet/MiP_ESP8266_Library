@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch turns MiP into a weather person and writes the
+// This example sketch turns MiP into a meteorologist and writes the
 // weather data to the serial port.
 #include <mip_esp8266.h>
 #include <JsonListener.h>
@@ -41,7 +41,7 @@ const char* ssid = "..............";
 const char* password = "..............";
 
 // Set any hostname you desire.
-const char* hostname = "MiP-0x01";
+const char* hostname = "MiP-Meteorologist";
 
 MiP         mip;
 bool        connectResult;

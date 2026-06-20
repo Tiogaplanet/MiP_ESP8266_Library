@@ -12,7 +12,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-// This example sketch turns MiP into a weather person.
+// This example sketch turns MiP into a meteorologist. This is meant to 
+// be a simple example of using MiP's eye LEDs and chest LED to indicate
+// the weather.
 #include <mip_esp8266.h>
 #include <JsonListener.h>
 #include <time.h>
@@ -40,7 +42,7 @@ const char* ssid = "..............";
 const char* password = "..............";
 
 // Set any hostname you desire.
-const char* hostname = "MiP-0x01";
+const char* hostname = "MiP-Meteorologist";
 
 MiP         mip;
 bool        connectResult;
