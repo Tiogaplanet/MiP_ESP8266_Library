@@ -24,15 +24,15 @@
 // The following three variables must be configured by the user for the sketch to work. //////////////
 
 // Enter the SSID for your wifi network.
-const char* ssid = "..............";
+#define SSID ".............."
 
 // Enter your wifi password.
-const char* password = "..............";
+#define PASSWORD ".............."
 
 // Provide your OpenWeatherMap API key.  See
 // https://docs.thingpulse.com/how-tos/openweathermap-key/
 // for more information.
-const String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
+#define OPEN_WEATHER_MAP_APP_ID "your_openweathermap_api_key"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,7 +115,7 @@ boolean searchError = false;
 
 void setup() {
   // Establish the WiFi connection.
-  connectResult = mip.begin(ssid, password, hostname);
+  connectResult = mip.begin(SSID, PASSWORD, hostname);
 
   // Connect the ESP8266 to MiP.
   if (!connectResult) {
@@ -140,7 +140,18 @@ void setup() {
   mip.enableClapEvents();
   mip.writeClapDelay(1000);
 
-  updateWeatherById(OPEN_WEATHER_MAP_LOCATION_ID);
+  // Initialize SPIFFS (Make sure SPIFFS.begin() is called if using files)
+  if (SPIFFS.begin()) {
+    locationLine = readLocation(); 
+  }
+
+  // If nothing was saved in SPIFFS yet, fall back to your default configuration constant
+  if (locationLine.length() == 0) {
+    locationLine = OPEN_WEATHER_MAP_LOCATION_ID;
+  }
+
+  // Request the weather using the newly verified variable
+  updateWeatherById(locationLine);
 }
 
 

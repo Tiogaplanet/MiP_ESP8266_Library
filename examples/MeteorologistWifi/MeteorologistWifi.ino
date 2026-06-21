@@ -20,13 +20,16 @@
 #include <time.h>
 #include "OpenWeatherMapCurrent.h"
 
-// Initiate the client for the OpenWeatherMap API.
-OpenWeatherMapCurrent client;
+// Enter the SSID for your wifi network.
+#define SSID ".............."
+
+// Enter your wifi password.
+#define PASSWORD ".............."
 
 // Provide your OpenWeatherMap API key.  See
 // https://docs.thingpulse.com/how-tos/openweathermap-key/
 // for more information.
-String OPEN_WEATHER_MAP_APP_ID = "your_openweathermap_api_key";
+#define OPEN_WEATHER_MAP_APP_ID "your_openweathermap_api_key"
 
 // Provide the OpenWeatherMap ID for your city.  For example, the value for Naples, Italy
 // is 3172394 and Charleston, South Carolina is 4574324.
@@ -35,14 +38,11 @@ String OPEN_WEATHER_MAP_LOCATION_ID = "4574324";
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
 boolean IS_METRIC = false;
 
-// Enter the SSID for your wifi network.
-const char* ssid = "..............";
-
-// Enter your wifi password.
-const char* password = "..............";
-
 // Set any hostname you desire.
 const char* hostname = "MiP-Meteorologist";
+
+// Initiate the client for the OpenWeatherMap API.
+OpenWeatherMapCurrent client;
 
 MiP         mip;
 bool        connectResult;
@@ -63,7 +63,7 @@ bool lastUpdatedToSolid = false;
 bool writtenToSerial1 = false;
 
 void setup() {
-  connectResult = mip.begin(ssid, password, hostname);
+  connectResult = mip.begin(SSID, PASSWORD, hostname);
 
   if (!connectResult) {
     Serial1.println(F("Failed connecting to MiP."));
