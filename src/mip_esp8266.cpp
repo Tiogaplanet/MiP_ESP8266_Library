@@ -171,17 +171,27 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 {
     bool returnValue = begin();
 
-    memcpy(m_ssid, ssid, strlen(ssid)+1);
-    memcpy(m_password, password, strlen(password)+1);
-    memcpy(m_hostname, hostname, strlen(hostname)+1);
+	// Memory-safe string copy operations to address bug:
+	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/26
+    strncpy(m_ssid, ssid, sizeof(m_ssid) - 1);
+    m_ssid[sizeof(m_ssid) - 1] = '\0'; // Ensure null-termination
 
+    strncpy(m_password, password, sizeof(m_password) - 1);
+    m_ssid[sizeof(m_ssid) - 1] = '\0'; // Ensure null-termination
+
+    strncpy(m_hostname, hostname, sizeof(m_hostname) - 1);
+    m_ssid[sizeof(m_hostname) - 1] = '\0'; // Ensure null-termination
+	
     WiFi.hostname(m_hostname);
     WiFi.begin(m_ssid, m_password);
 
-    while (WiFi.waitForConnectResult() != WL_CONNECTED)
-    {
-        MIP_DEBUG_WARN_PRINTLN(F("MiP: Internet connection failed. Retrying..."));
-        WiFi.reconnect();
+	// Non-blocking status loop to address bug:
+	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/25
+    uint8_t attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+      MIP_DEBUG_WARN_PRINTLN(F("MiP: Internet connection failed. Retrying..."));
+      delay(500);
+      attempts++;
     }
 
     ArduinoOTA.onStart([]() {
