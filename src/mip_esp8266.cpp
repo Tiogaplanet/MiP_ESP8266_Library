@@ -211,9 +211,12 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     ArduinoOTA.onEnd([]() {
         MIP_DEBUG_INFO_PRINTLN(F("End"));
     });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-        MIP_DEBUG_INFO_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
-    });
+	// Correct formatted percentage string to address bug:
+	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/27
+	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+      if (total == 0) return;
+      MIP_DEBUG_INFO_PRINTF("Progress: %u%%\r", (progress * 100) / total);
+	});
     ArduinoOTA.onError([](ota_error_t error) {
         MIP_DEBUG_ERROR_PRINTF("Error[%u]: ", error);
         if (error == OTA_AUTH_ERROR) {
