@@ -42,16 +42,10 @@
 // requests.
 #define MIP_CONTINUOUS_DRIVE_DELAY 50
 
-// EEPROM base address.  When reading or writing to EEPROM the user will pass an offset that is added to this base address.
-#define MIP_BASE_EEPROM_ADDRESS 0x20
-
-// Last addressable address in EEPROM.
-#define MIP_LAST_EEPROM_ADDRESS 0x2F
-
-// Baud rate for MiP communications.
+// Fast baud rate for MiP communications.
 #define MIP_FAST_BAUD_RATE 115200
 
-// Slower baud rate used by later MiPs.
+// Slow baud rate used by some MiPs.
 #define MIP_SLOW_BAUD_RATE 9600
 
 // Baud rate used for the esp8266 debug channel.
