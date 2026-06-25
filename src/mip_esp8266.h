@@ -79,6 +79,13 @@
 #define MIP_REQUEST_MAX_LEN     (17 + 1)    // Longest request is MIP_CMD_PLAY_SOUND.
 #define MIP_RESPONSE_MAX_LEN    (5 + 1)     // Longest response is MIP_CMD_REQUEST_CHEST_LED.
 
+// EEPROM base address.  When reading or writing to EEPROM the user will pass an offset that is added to this base address.
+#define MIP_BASE_EEPROM_ADDRESS 0x20
+
+// Last addressable address in EEPROM.
+#define MIP_LAST_EEPROM_ADDRESS 0x2F
+
+
 enum MiPGestureRadarMode
 {
     MIP_GESTURE_RADAR_DISABLED = 0x00,
