@@ -12,7 +12,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-/* Circular queue used internally by MiP library. Overwrites oldest items once it is full.
+/* Circular queue used internally by the MPU library. Overwrites oldest items once it is full.
 
    NOT THREAD SAFE!
    ****************

@@ -16,18 +16,18 @@
     driveForward()
     driveBackward()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("DriveForwardBackward.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("DriveForwardBackward.ino - Use driveForward() & driveBackward() functions. Drive ahead and back, 1 second in each direction."));
+  Serial1.println(F("DriveForwardBackward.ino: Use driveForward() and driveBackward() functions. Drive ahead and back, 1 second in each direction."));
 
   mip.driveForward(15, 1000);
   delay(2000);
@@ -35,7 +35,7 @@ void setup() {
   delay(2000);
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("DriveForwardBackward.ino: Done."));
 }
 
 void loop() {

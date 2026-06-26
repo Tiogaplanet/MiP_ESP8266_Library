@@ -15,20 +15,20 @@
 /* Example used in following API documentation:
     readRadar()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Radar.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("Radar.ino - Display current radar readings to user."));
+  Serial1.println(F("Radar.ino: Display current radar readings to user."));
 
-  Serial1.println(F("Waiting for robot to be standing upright."));
+  Serial1.println(F(" Waiting for robot to be standing upright."));
   while (!mip.isUpright()) {
     // Waiting
   }
@@ -40,7 +40,7 @@ void loop() {
   MiPRadar        currentRadar = mip.readRadar();
 
   if (currentRadar != MIP_RADAR_INVALID && lastRadar != currentRadar) {
-    Serial1.print(F("Radar = "));
+    Serial1.print(F(" Radar = "));
     switch (currentRadar) {
       case MIP_RADAR_NONE:
         Serial1.println(F("None"));

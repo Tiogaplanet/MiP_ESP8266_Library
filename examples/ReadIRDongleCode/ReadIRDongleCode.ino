@@ -16,7 +16,7 @@
     readIRDongleCode()
     availableIRCodeEvents()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP       mip;
 bool      connectResult;
@@ -25,11 +25,11 @@ void setup() {
   connectResult = mip.begin();
   if (!connectResult)
   {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("ReadIRDongleCode.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("ReadIRDongleCode.ino - Receive code from another MiP using IR."));
+  Serial1.println(F("ReadIRDongleCode.ino: Receive code from another MiP using IR."));
 }
 
 void loop() {
@@ -38,7 +38,7 @@ void loop() {
   if (mip.availableIRCodeEvents()) {
     receiveCode = mip.readIRDongleCode();
 
-    Serial1.print(F("Received "));
+    Serial1.print(F(" Received "));
     Serial1.print(((receiveCode >> 28) & 0xFF), HEX);
     Serial1.print(F(" "));
     Serial1.print(((receiveCode >> 16) & 0xFF), HEX);

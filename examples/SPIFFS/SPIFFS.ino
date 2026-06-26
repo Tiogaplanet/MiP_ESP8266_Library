@@ -14,7 +14,7 @@
 */
 /* Demonstrates use of the SPI flash file system (SPIFFS) on the ESP8266.
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 #include "FS.h"
 
 MiP     mip;
@@ -24,13 +24,13 @@ void setup() {
 
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("SPIFFS.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("SPIFFS.ino - Read and write the the SPI flash file system (SPIFFS).\n"));
+  Serial1.println(F("SPIFFS.ino: Read and write the the SPI flash file system (SPIFFS).\n"));
   
-  Serial1.println(F("Chest turns violet if the read matches the write, else red.\n"));
+  Serial1.println(F(" Chest turns violet if the read matches the write, else red.\n"));
 
   // The call to begin() mounts the flash filesystem.
   (SPIFFS.begin())  ? Serial1.println(F("SPIFFS opened.")) : Serial1.println(F("\n\nSPIFFS failed to open."));
@@ -38,7 +38,7 @@ void setup() {
   // Open the file in write mode.
   File f = SPIFFS.open("/f.txt", "w");
   if (!f) {
-    Serial1.println(F("File creation failed."));
+    Serial1.println(F(" SPIFFS.ino: File creation failed."));
   }
   // Write a "password."
   f.println(password);
@@ -56,19 +56,20 @@ void setup() {
   
   line.trim();
   
-  Serial1.println("Password is " + password + ".");
-  Serial1.println("File contained " + line + ".");
+  Serial1.println(" Password is " + password + ".");
+  Serial1.println(" File contained " + line + ".");
   
   (line == password) ? mip.writeChestLED(0xB6, 0x00, 0xFF) : mip.writeChestLED(0xFF, 0x00, 0x00);
   
   f.close();
 
-  (SPIFFS.remove("/f.txt")) ? Serial1.println(F("File deleted.")) : Serial1.println(F("Error deleting file."));
+  (SPIFFS.remove("/f.txt")) ? Serial1.println(F(" File deleted.")) : Serial1.println(F(" Error deleting file."));
 
   delay(5000);
   mip.writeChestLED(0x00, 0xFF, 0x00);
+  
+  Serial1.println(F("SPIFFS.ino: Done."));
 }
 
 void loop() {
 }
-

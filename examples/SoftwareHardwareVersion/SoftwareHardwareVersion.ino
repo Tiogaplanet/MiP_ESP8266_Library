@@ -16,22 +16,22 @@
     readSoftwareVersion()
     readHardwareInfo()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("SoftwareHardwareVersion.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("SoftwareHardwareVersion.ino - Use readSoftwareVersion() & readHardwareInfo() functions."));
+  Serial1.println(F("SoftwareHardwareVersion.ino: Use readSoftwareVersion() and readHardwareInfo() functions."));
 
   MiPSoftwareVersion softwareVersion;
   mip.readSoftwareVersion(softwareVersion);
-  Serial1.print(F("software version: "));
+  Serial1.print(F(" Software version: "));
   Serial1.print(softwareVersion.year);
     Serial1.print('-');
     Serial1.print(softwareVersion.month);
@@ -42,16 +42,15 @@ void setup() {
 
   MiPHardwareInfo hardwareInfo;
   mip.readHardwareInfo(hardwareInfo);
-  Serial1.println(F("hardware info"));
-  Serial1.print(F("  voice chip version: "));
+  Serial1.println(F(" Hardware info"));
+  Serial1.print(F("  Voice chip version: "));
     Serial1.println(hardwareInfo.voiceChip);
-  Serial1.print(F("  hardware version: "));
+  Serial1.print(F("  Hardware version: "));
     Serial1.println(hardwareInfo.hardware);
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("SoftwareHardwareVersion.ino: Done."));
 }
 
 void loop() {
 }
-

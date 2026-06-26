@@ -23,18 +23,18 @@
     isFaceDownOnTray();
     isOnBackWithKickstand();
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Status.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("Status.ino - Display MiP status as it changes."));
+  Serial1.println(F("Status.ino: Display MiP status as it changes."));
 }
 
 void loop() {
@@ -45,7 +45,7 @@ void loop() {
   MiPPosition        currentPosition = mip.readPosition();
 
   if (currentBatteryLevel != lastBatteryLevel) {
-    Serial1.print(F("Battery: "));
+    Serial1.print(F(" Battery: "));
       Serial1.print(currentBatteryLevel);
       Serial1.println(F("V"));
     lastBatteryLevel = currentBatteryLevel;
@@ -53,28 +53,27 @@ void loop() {
 
   if (currentPosition != lastPosition) {
     if (mip.isOnBack()) {
-      Serial1.println(F("Position: On Back"));
+      Serial1.println(F(" Position: On Back"));
     }
     if (mip.isFaceDown()) {
-      Serial1.println(F("Position: Face Down"));
+      Serial1.println(F(" Position: Face Down"));
     }
     if (mip.isUpright()) {
-      Serial1.println(F("Position: Upright"));
+      Serial1.println(F(" Position: Upright"));
     }
     if (mip.isPickedUp()) {
-      Serial1.println(F("Position: Picked Up"));
+      Serial1.println(F(" Position: Picked Up"));
     }
     if (mip.isHandStanding()) {
-      Serial1.println(F("Position: Hand Stand"));
+      Serial1.println(F(" Position: Hand Stand"));
     }
     if (mip.isFaceDownOnTray()) {
-      Serial1.println(F("Position: Face Down on Tray"));
+      Serial1.println(F(" Position: Face Down on Tray"));
     }
     if (mip.isOnBackWithKickstand()) {
-      Serial1.println(F("Position: On Back With Kickstand"));
+      Serial1.println(F(" Position: On Back With Kickstand"));
     }
 
     lastPosition = currentPosition;
   }
 }
-

@@ -13,7 +13,7 @@
    limitations under the License.
 */
 // Program that I demoed at the Seattle Robotics Society meeting on April 21, 2018.
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 static MiP         g_mip;
 static MiPHeadLEDs g_headLEDs;

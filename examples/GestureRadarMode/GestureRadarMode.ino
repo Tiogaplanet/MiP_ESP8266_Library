@@ -21,18 +21,18 @@
     isGestureModeEnabled();
     isGestureAndRadarModeDisabled();
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("GestureRadarMode.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("GestureRadarMode.ino - Switches between gesture, radar, and default modes."));
+  Serial1.println(F("GestureRadarMode.ino: Switches between gesture, radar, and default modes."));
 
   Serial1.println(F("Calling mip.enableRadarMode()"));
   mip.enableRadarMode();
@@ -77,7 +77,7 @@ void setup() {
   }
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("GestureRadarMode.ino: Done."));
 }
 
 void loop() {

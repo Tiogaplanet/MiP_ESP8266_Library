@@ -15,18 +15,18 @@
 /* Example used in following API documentation:
     getUp()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("GetUp.ino: ailed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("GetUp.ino - Use getUp(). Attempt to get up from a front fall."));
+  Serial1.println(F("GetUp.ino: Use getUp(). Attempt to get up from a front fall."));
 
   mip.fallForward();
   delay(3000);
@@ -35,7 +35,7 @@ void setup() {
   delay(3000);
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("GetUp.ino: Done."));
 }
 
 void loop() {

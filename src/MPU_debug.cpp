@@ -16,10 +16,10 @@
    This is the implementation of the MiPDebug server for outputting debug messages to telnet.
    Written by Samuel Trassare and based on Joao Lopes' original RemoteDebug library.
 */
-#include "mip_debug.h"
+#include "MPU_debug.h"
 #include <Arduino.h>
 
-// Define a version number just for this telnet server, not the overall mip_esp8266 library.
+// Define a version number just for this telnet server, not the overall MPU library.
 #define VERSION "1.0.0"
 
 // The telnet server instance.

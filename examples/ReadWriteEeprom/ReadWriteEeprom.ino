@@ -16,7 +16,7 @@
     setUserData()
     getUserData()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP           mip;
 
@@ -30,11 +30,11 @@ uint8_t       secretPassword = 0x0D;
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("ReadWriteEeprom.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("ReadWriteEeprom.ino - Writes data to EEPROM and reads it back."));
+  Serial1.println(F("ReadWriteEeprom.ino: Writes data to EEPROM and reads it back."));
 
   Serial1.print(F("Original password: "));
   Serial1.println(secretPassword, HEX);
@@ -45,11 +45,13 @@ void setup() {
 
   // "Scramble" the secret password.
   secretPassword = 0xFF;
-  Serial1.print(F("Scrambled password: "));
+  Serial1.print(F(" Scrambled password: "));
   Serial1.println(secretPassword, HEX);
 
-  Serial1.print(F("Recovered password: "));
+  Serial1.print(F(" Recovered password: "));
   Serial1.print(mip.getUserData(eepromAddressOffset), HEX);
+  
+  Serial1.println(F("ReadWriteEeprom.ino: Done."));
 }
 
 void loop() {

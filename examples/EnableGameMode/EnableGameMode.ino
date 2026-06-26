@@ -26,7 +26,7 @@
     isTrickModeEnabled()
     isRoamModeEnabled()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP mip;
 
@@ -38,11 +38,11 @@ void setup() {
   // First need to initialize the Serial1 connection with the MiP.
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("EnableGameMode.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("EnableGameMode.ino - Cycles through each mode available."));
+  Serial1.println(F("EnableGameMode.ino: Cycles through each mode available."));
 
   delay(500);
 }
@@ -50,37 +50,37 @@ void setup() {
 void loop() {
   mip.enableCageMode();
   if (mip.isCageModeEnabled()) {
-    Serial1.println(F("Cage mode enabled."));
+    Serial1.println(F(" Cage mode enabled."));
   }
   delay(delayPeriod);
 
   mip.enableDanceMode();
   if (mip.isDanceModeEnabled()) {
-    Serial1.println(F("Dance mode enabled."));
+    Serial1.println(F(" Dance mode enabled."));
   }
   delay(delayPeriod);
 
   mip.enableStackMode();
   if (mip.isStackModeEnabled()) {
-    Serial1.println(F("Stack mode enabled."));
+    Serial1.println(F(" Stack mode enabled."));
   }
   delay(delayPeriod);
 
   mip.enableTrickMode();
   if (mip.isTrickModeEnabled()) {
-    Serial1.println(F("Trick mode enabled."));
+    Serial1.println(F(" Trick mode enabled."));
   }
   delay(delayPeriod);
 
   mip.enableRoamMode();
   if (mip.isRoamModeEnabled()) {
-    Serial1.println(F("Roam mode enabled."));
+    Serial1.println(F(" Roam mode enabled."));
   }
   delay(delayPeriod);
 
   mip.enableAppMode();
   if (mip.isAppModeEnabled()) {
-    Serial1.println(F("App mode enabled."));
+    Serial1.println(F(" App mode enabled."));
   }
   delay(delayPeriod);
 }

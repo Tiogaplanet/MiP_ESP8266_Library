@@ -16,30 +16,29 @@
     readDistanceTravelled()
     resetDistanceTravelled()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Odometer.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("Odometer.ino - Read out current odometer reading and reset."));
+  Serial1.println(F("Odometer.ino: Read out current odometer reading and reset."));
 
   float cm = mip.readDistanceTravelled();
-  Serial1.print(F("MiP has travelled "));
+  Serial1.print(F(" MiP has travelled "));
     Serial1.print(cm);
     Serial1.println(F(" cm since the last reset."));
 
   mip.resetDistanceTravelled();
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("Odometer.ino: Done."));
 }
 
 void loop() {
 }
-

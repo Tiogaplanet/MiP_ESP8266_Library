@@ -12,8 +12,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#include <mip_esp8266.h>
-#include <mip_debug.h>
+#include <MPU_D1_mini.h>
+#include <MPU_debug.h>
 
 const char* ssid = "..............";          // Enter the SSID for your wifi network.
 const char* password = "..............";      // Enter your wifi password.
@@ -34,7 +34,7 @@ void setup() {
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP."));
+    Serial1.println(F("TelnetDebug.ino: Failed connecting to MiP."));
     return;
   }
 
@@ -42,11 +42,11 @@ void setup() {
 
   debug.setResetCmdEnabled(true);             // Enable the reset command.
 
-  Serial1.println(F("TelnetDebug.ino - Explore the different telnet debug levels."));
+  Serial1.println(F("TelnetDebug.ino: Explore the different telnet debug levels."));
   Serial1.println();
-  Serial1.print(F("IP address: "));
+  Serial1.print(F(" IP address: "));
   Serial1.println(WiFi.localIP());
-  Serial1.println(F("Use serial debugging in setup()."));
+  Serial1.println(F(" Use serial debugging in setup()."));
 
   lastTimeCheck = millis();
 }
@@ -82,4 +82,3 @@ void loop() {
 
   debug.handle();                            // Without this we can't debug MiP using telnet.
 }
-

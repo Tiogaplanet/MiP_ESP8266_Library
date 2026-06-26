@@ -17,14 +17,14 @@
     writeChestLED()
     unverifiedChestLED()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("ChestLED.ino: Failed connecting to MiP!"));
     return;
   }
 
@@ -85,7 +85,7 @@ void setup() {
   delay(1000);
   
   Serial1.println();
-  Serial1.println(F("Done."));
+  Serial1.println(F("ChestLED.ino: Done."));
 }
 
 void loop() {

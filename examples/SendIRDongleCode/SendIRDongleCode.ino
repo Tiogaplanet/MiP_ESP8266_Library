@@ -15,7 +15,7 @@
 /* Example used in following API documentation:
     sendIRDongleCode()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 // Try different values for transmission power (0x01 - 0x78)
 #define MIP_IR_TX_POWER  0x78
@@ -27,11 +27,11 @@ void setup() {
   connectResult = mip.begin();
   if (!connectResult)
   {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("SendIRDongleCode.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("SendIRDongleCode.ino - Send code to another MiP using IR."));
+  Serial1.println(F("SendIRDongleCode.ino: Send code to another MiP using IR."));
 }
 
 void loop() {
@@ -44,7 +44,7 @@ void loop() {
   dongleCode <<= 8;
   dongleCode |= 0x67;
 
-  sprintf(formattedOutput, "Sending 0x%04X", dongleCode);
+  sprintf(formattedOutput, " Sending 0x%04X", dongleCode);
 
   Serial1.println(formattedOutput);
 

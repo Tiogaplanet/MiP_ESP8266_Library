@@ -15,9 +15,9 @@
 
 // MiP happily wanders around until it detects too many near obstructions within a minute of its last detected
 // obstruction.  Then it gets frustrated.  This sketch is intended to be a "built-in" sketch for MiPs
-// containing the MiP D1 mini Pack.
+// containing the MiP Power Up: D1 mini.
 
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 static MiP mip;
 
@@ -38,7 +38,7 @@ void setup() {
   bool connectResult = mip.begin();
   if (!connectResult)
   {
-    Serial.println(F("Failed connecting to MiP.  Is it turned on?"));
+    Serial.println(F("Frustration.ino: Failed connecting to MiP.  Is it turned on?"));
     return;
   }
 

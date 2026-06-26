@@ -14,7 +14,7 @@
 */
 // This example sketch shows the bare minimum needed to connect MiP to wifi.
 // This sketch may be used as a starting point for your sketch.
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 const char* ssid = "..............";          // Enter the SSID for your wifi network.
 const char* password = "..............";      // Enter your wifi password.
@@ -28,12 +28,12 @@ void setup() {
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP."));
+    Serial1.println(F("BareMinimumWifi.ino: Failed connecting to MiP."));
     return;
   }
 
-  Serial1.print(F("BareMinimumWifi: IP address: ")); // You could delete this chunk of code.  It's
-  Serial1.println(WiFi.localIP());                   // here only to show your IP address.
+  Serial1.print(F("BareMinimumWifi.ino: IP address: ")); // You could delete this chunk of code.  
+  Serial1.println(WiFi.localIP());                       // It's here only to show your IP address.
 }
 
 void loop() {

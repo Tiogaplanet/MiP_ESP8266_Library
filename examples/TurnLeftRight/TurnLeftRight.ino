@@ -16,18 +16,18 @@
     turnLeft()
     turnRight()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("TurnLeftRight.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("TurnLeftRight.ino - Use turnLeft & turnRight() functions. Turn 180 degrees to left and then 180 degrees to right."));
+  Serial1.println(F("TurnLeftRight.ino: Use turnLeft & turnRight() functions. Turn 180 degrees to left and then 180 degrees to right."));
 
   mip.turnLeft(180, 12);
   delay(2000);
@@ -35,9 +35,8 @@ void setup() {
   delay(2000);
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("TurnLeftRight.ino: Done."));
 }
 
 void loop() {
 }
-

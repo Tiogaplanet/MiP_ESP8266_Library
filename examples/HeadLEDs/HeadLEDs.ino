@@ -17,18 +17,18 @@
     readHeadLEDs()
     unverifiedWriteHeadLEDs()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("HeadLEDs.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("HeadLEDs.ino - Use head LED functions. Should set each head LED to different state."));
+  Serial1.println(F("HeadLEDs.ino: Use head LED functions. Should set each head LED to different state."));
   mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_ON, MIP_HEAD_LED_BLINK_SLOW, MIP_HEAD_LED_BLINK_FAST);
 
   MiPHeadLEDs headLEDs;
@@ -46,38 +46,38 @@ void setup() {
   delay(4000);
 
   // Turn all the LEDs back on now.
-  Serial1.println(F("Turning all eye LEDs back on now."));
+  Serial1.println(F(" Turning all eye LEDs back on now."));
   headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
   mip.writeHeadLEDs(headLEDs);
   delay(1000);
 
   // Attempt to run through the same sequence of head LED changes using the 
   // unverifiedWriteHeadLEDs() functions which don't always get accepted by MiP.
-  Serial1.println(F("Trying to set each head LED to a different state."));
+  Serial1.println(F(" Trying to set each head LED to a different state."));
   mip.unverifiedWriteHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_ON, MIP_HEAD_LED_BLINK_SLOW, MIP_HEAD_LED_BLINK_FAST);
   delay(4000);
 
-  Serial1.println(F("Trying to set all eye LEDs back on now."));
+  Serial1.println(F(" Trying to set all eye LEDs back on now."));
   headLEDs.led1 = headLEDs.led2 = headLEDs.led3 = headLEDs.led4 = MIP_HEAD_LED_ON;
   mip.unverifiedWriteHeadLEDs(headLEDs);
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("HeadLEDs.ino: Done."));
 }
 
 static void printLEDString(MiPHeadLED led) {
   switch (led) {
     case MIP_HEAD_LED_OFF:
-      Serial1.println(F("Off"));
+      Serial1.println(F(" Off"));
       break;
     case MIP_HEAD_LED_ON:
-      Serial1.println(F("On"));
+      Serial1.println(F(" On"));
       break;
     case MIP_HEAD_LED_BLINK_SLOW:
-      Serial1.println(F("Blink Slow"));
+      Serial1.println(F(" Blink Slow"));
       break;
     case MIP_HEAD_LED_BLINK_FAST:
-      Serial1.println(F("Blink Fast"));
+      Serial1.println(F(" Blink Fast"));
       break;
     default:
       Serial1.println();

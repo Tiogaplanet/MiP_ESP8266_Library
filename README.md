@@ -1,4 +1,4 @@
-# MiP ESP8266 Library
+# MiP Power Up: D1 mini library
 ![The D1 mini Pack mounted on MiP](https://github.com/Tiogaplanet/Experimenting-with-the-MiP/raw/master/images/IMG_5967_medium.JPG)
 
 This project provides a library for the Arduino IDE and allows users to take control of [WowWee Labs'](https://github.com/WowWeeLabs/)  [MiP](https://wowwee.com/mip) and turn it into a cloud-connected robot.
@@ -13,19 +13,19 @@ MiP is a hacker friendly self-balancing robot. WowWee not only provides the [MiP
 *   Detect the MiP's current pose via its inertial sensors, the same sensors that make its balancing magic possible.
 *   And more!
   
-Also, be sure to check out the [D1 mini Pack](https://github.com/Tiogaplanet/MiP_D1-mini-Pack) which conveniently allows you to mount a D1 mini to MiP's battery compartment.
+Be sure to check out the [D1 mini Pack](https://github.com/Tiogaplanet/MiP_Power_Up_D1_mini) which conveniently allows you to mount a D1 mini to MiP's battery compartment.
 
 ## Acknowledgement
-*   This library is a port of adamgreen's [MiP_ProMini Pack](https://github.com/adamgreen/MiP_ProMini-Pack).  Here you will find all the  same functionality as his original library but with cloud-connectivity too!<br>
+*   This library is a port of adamgreen's [MiP_ProMini Pack](https://github.com/adamgreen/MiP_ProMini-Pack).  Here you will find all the  same functionality as his original library but with cloud-connectivity added.<br>
 *   JoaoLopesF developed the highly valuable [RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug) library which makes debugging MiP wireless and easy.
 *   Without esp8266's [Arduino](https://github.com/esp8266/Arduino) library, none of this would be possible.
 
 ## Installation
 1.  The esp8266 [Arduino](https://github.com/esp8266/Arduino) library should already be installed prior to using this library.
-2.  The MiP_ESP8266_Library is intended for use with the Arduino IDE.  Installation is the same as for other libraries.  Download the zip and select `Sketch->Include Library->Add .ZIP Library...`.  Browse to the downloaded zip file and the Arduino IDE will do the rest.
+2.  The MiP Power Up: D1 mini library is intended for use with the Arduino IDE.  Installation is the same as for other libraries.  Download the zip and select `Sketch->Include Library->Add .ZIP Library...`.  Browse to the downloaded zip file and the Arduino IDE will do the rest.
 
 ## Usage
-A very thorough guide to using the MiP_ESP8266_Library is provided in the [wiki](https://github.com/Tiogaplanet/MiP_ESP8266_Library/wiki).
+A very thorough guide to using the MiP Power Up D1 mini library is provided in the [wiki](https://github.com/Tiogaplanet/MiP_Power_Up_D1_mini_lib/wiki).
 
 ## Contributing
 This project is intended to make programming MiP easy and fun.  To that end, contributions are highly encouraged!  Please see [CONTRIBUTING.md](https://github.com/Tiogaplanet/MiP_ESP8266_Library/blob/master/CONTRIBUTING.md) for more information.

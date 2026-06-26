@@ -17,7 +17,7 @@
     end()
     sleep()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
@@ -38,7 +38,7 @@ void setup() {
   delay(5000);
   connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Sleep.ino: Failed reconnecting to MiP!"));
+    Serial1.println(F(" Sleep.ino: Failed reconnecting to MiP!"));
     return;
   }
   Serial1.println(F(" Attempted to reconnect to MiP. Chest LED should be green again."));

@@ -15,7 +15,7 @@
 /* This is a port to the ESP8266 of Adam Green's original MiP C API.
    Porting done by Samuel Trassare.
 */
-#include "mip_esp8266.h"
+#include "MPU_D1_mini.h"
 
 
 // Number of times that begin() method should try to initialize the MiP.

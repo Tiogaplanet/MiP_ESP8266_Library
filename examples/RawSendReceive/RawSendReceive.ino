@@ -16,18 +16,18 @@
     rawSend()
     rawReceive()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("RawSendReceive.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("RawSendReceive.ino - Use raw*() functions.\n"
+  Serial1.println(F("RawSendReceive.ino: Use raw*() functions.\n"
                    "Should set chest LED to purple and display MiP firmware revision"));
 
   // Send 4-byte MiP command to set Chest LED to Purple.
@@ -53,7 +53,7 @@ void setup() {
   }
 
   Serial1.println();
-  Serial1.println(F("Sample done."));
+  Serial1.println(F("RawSendReceive.ino: Done."));
 }
 
 void loop() {

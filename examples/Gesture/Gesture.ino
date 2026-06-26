@@ -16,20 +16,20 @@
     availableGestureEvents()
     readGestureEvent()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("Gesture.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("Gesture.ino - Detect gesture and inform user as they occur."));
+  Serial1.println(F("Gesture.ino: Detect gesture and inform user as they occur."));
 
-  Serial1.println(F("Waiting for robot to be standing upright."));
+  Serial1.println(F(" Waiting for robot to be standing upright."));
   while (!mip.isUpright()) {
     // Waiting
   }

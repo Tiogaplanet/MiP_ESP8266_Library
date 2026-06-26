@@ -15,18 +15,18 @@
 /* Example used in following API documentation:
     continuousDrive()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("Failed connecting to MiP!"));
+    Serial1.println(F("ContinuousDrive.ino: Failed connecting to MiP!"));
     return;
   }
 
-  Serial1.println(F("ContinuousDrive.ino - Use continuousDrive() function. Drive forward with right turn and then backward with left turn."));
+  Serial1.println(F("ContinuousDrive.ino: Use continuousDrive() function. Drive forward with right turn and then backward with left turn."));
 }
 
 void loop()
@@ -56,7 +56,7 @@ void loop()
         mip.continuousDrive(-16, -8);
       } else {
         Serial1.println();
-        Serial1.println(F("Sample done."));
+        Serial1.println(F("ContinuousDrive.ino: Done."));
         state = DONE;
       }
       break;

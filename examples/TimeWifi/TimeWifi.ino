@@ -14,7 +14,7 @@
 */
 // Turn MiP into a clock! This example reads network time protocol (NTP) and
 // writes the time to MiP's eyes, one digit at a time.
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 #include <time.h>                             // We'll read the time and parse it.
 
 const char* ssid = "..............";          // Enter the SSID for your wifi network.
@@ -29,12 +29,12 @@ void setup() {
   connectResult = mip.begin(ssid, password, hostname);
 
   if (!connectResult) {
-    Serial1.println(F("TimeWifi: Failed connecting to MiP."));
+    Serial1.println(F("TimeWifi.ino: Failed connecting to MiP."));
     return;
   }
 
   configTime(-4 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  Serial1.println("\nWaiting for time");
+  Serial1.println("\n Waiting for time");
   while (!time(nullptr)) {
     Serial1.print(".");
     delay(1000);
@@ -54,10 +54,10 @@ void loop() {
   uint8_t minute_tens = timeinfo->tm_min / 10;
   uint8_t minute_ones = timeinfo->tm_min % 10;
 
-  Serial1.print(F("Hour tens: ")); Serial1.println(hour_tens);
-  Serial1.print(F("Hour ones: ")); Serial1.println(hour_ones);
-  Serial1.print(F("Minute tens: ")); Serial1.println(minute_tens);
-  Serial1.print(F("Minute ones: ")); Serial1.println(minute_ones);
+  Serial1.print(F(" Hour tens: ")); Serial1.println(hour_tens);
+  Serial1.print(F(" Hour ones: ")); Serial1.println(hour_ones);
+  Serial1.print(F(" Minute tens: ")); Serial1.println(minute_tens);
+  Serial1.print(F(" Minute ones: ")); Serial1.println(minute_ones);
 
   switch (hour_tens) {                        // In the next four switches, write the time to MiP's eyes.
     case 0:
@@ -174,4 +174,3 @@ void loop() {
   mip.writeHeadLEDs(MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF, MIP_HEAD_LED_OFF);
   delay(3000);
 }
-
