@@ -117,7 +117,7 @@
 
 static void mipAssert(uint32_t lineNumber)
 {
-    MIP_DEBUG_ERROR_PRINTF("MiP Assert: mip_esp8266.cpp: %d\n", lineNumber);
+    MIP_DEBUG_ERROR_PRINTF("MiP: Assert: mip_esp8266.cpp: %d\n", lineNumber);
 
     while (1)
     {
@@ -345,10 +345,6 @@ void MiP::end()
 
     // Shutdown the debugging channel.
     Serial1.end();
-
-    // Put the D1 mini into deep sleep indefinitely.  MiP will need to be power cycled before the
-    // D1 mini will execute again.
-    ESP.deepSleep(0);
 }
 
 void MiP::sleep()
