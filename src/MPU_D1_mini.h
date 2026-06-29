@@ -579,7 +579,7 @@ protected:
     int8_t  rawGetGestureRadarMode(MiPGestureRadarMode& mode);
 
     void    rawSetChestLED(uint8_t red, uint8_t green, uint8_t blue);
-    void    rawFlashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTime, uint16_t offTime);
+    void    rawFlashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t onTime, uint8_t offTime);
     int8_t  rawGetChestLED(MiPChestLED& chestLED);
 
     void    rawSetHeadLEDs(MiPHeadLED led1, MiPHeadLED led2, MiPHeadLED led3, MiPHeadLED led4);

@@ -717,7 +717,7 @@ void MiP::rawSetChestLED(uint8_t red, uint8_t green, uint8_t blue)
 
 // This internal protected method sends the flash chest LED command with no error checking. The error handling /
 // recovery happens at a higher level of the driver.
-void MiP::rawFlashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint16_t onTime, uint16_t offTime)
+void MiP::rawFlashChestLED(uint8_t red, uint8_t green, uint8_t blue, uint8_t onTime, uint8_t offTime)
 {
     uint8_t command[1+5];
 
