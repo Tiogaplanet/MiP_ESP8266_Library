@@ -86,14 +86,14 @@
 #define MIP_LAST_EEPROM_ADDRESS 0x2F
 
 
-enum MiPGestureRadarMode
+enum MiPGestureRadarMode : uint8_t
 {
     MIP_GESTURE_RADAR_DISABLED = 0x00,
     MIP_GESTURE                = 0x02,
     MIP_RADAR                  = 0x04,
 };
 
-enum MiPRadar
+enum MiPRadar : uint8_t
 {
     MIP_RADAR_NONE      = 0x01,
     MIP_RADAR_10CM_30CM = 0x02,
@@ -101,7 +101,7 @@ enum MiPRadar
     MIP_RADAR_INVALID   = 0xFF          // Is set to this value when there are no current radar events.
 };
 
-enum MiPGesture
+enum MiPGesture : uint8_t
 {
     MIP_GESTURE_LEFT               = 0x0A,
     MIP_GESTURE_RIGHT              = 0x0B,
@@ -113,7 +113,7 @@ enum MiPGesture
     MIP_GESTURE_INVALID            = 0xFF   // Is set to this value when there are no current gesture events.
 };
 
-enum MiPHeadLED
+enum MiPHeadLED : uint8_t
 {
     MIP_HEAD_LED_OFF        = 0,
     MIP_HEAD_LED_ON         = 1,
@@ -121,25 +121,25 @@ enum MiPHeadLED
     MIP_HEAD_LED_BLINK_FAST = 3,
 };
 
-enum MiPDriveDirection
+enum MiPDriveDirection : uint8_t
 {
     MIP_DRIVE_FORWARD  = 0x00,
     MIP_DRIVE_BACKWARD = 0x01,
 };
 
-enum MiPTurnDirection
+enum MiPTurnDirection : uint8_t
 {
     MIP_TURN_LEFT  = 0x00,
     MIP_TURN_RIGHT = 0x01
 };
 
-enum MiPFallDirection
+enum MiPFallDirection : uint8_t
 {
     MIP_FALL_ON_BACK   = 0x00,
     MIP_FALL_FACE_DOWN = 0x01
 };
 
-enum MiPPosition
+enum MiPPosition : uint8_t
 {
     MIP_POSITION_ON_BACK                = 0x00,
     MIP_POSITION_FACE_DOWN              = 0x01,
@@ -150,14 +150,14 @@ enum MiPPosition
     MIP_POSITION_ON_BACK_WITH_KICKSTAND = 0x06,
 };
 
-enum MiPGetUp
+enum MiPGetUp : uint8_t
 {
     MIP_GETUP_FROM_FRONT  = 0x00,
     MIP_GETUP_FROM_BACK   = 0x01,
     MIP_GETUP_FROM_EITHER = 0x02
 };
 
-enum MiPSoundIndex
+enum MiPSoundIndex : uint8_t
 {
     MIP_SOUND_ONEKHZ_500MS_8K16BIT = 1,
     MIP_SOUND_ACTION_BURPING,
@@ -275,7 +275,7 @@ enum MiPSoundIndex
     MIP_SOUND_VOLUME_7   = 0xFE
 };
 
-enum MiPVolume
+enum MiPVolume : uint8_t
 {
     MIP_VOLUME_OFF = 0,
     MIP_VOLUME_1   = 1,
@@ -288,13 +288,13 @@ enum MiPVolume
     MIP_VOLUME_DEFAULT = 0xFF
 };
 
-enum MiPClapEnabled
+enum MiPClapEnabled : uint8_t
 {
     MIP_CLAP_DISABLED = 0x00,
     MIP_CLAP_ENABLED  = 0x01,
 };
 
-enum MiPGameMode
+enum MiPGameMode : uint8_t
 {
     MIP_APP_MODE      = 0x01,
     MIP_CAGE_MODE     = 0x02,
@@ -631,7 +631,7 @@ protected:
     uint8_t discardUnexpectedSerialData();
 
     // Bits that can be set in m_flags bitfield.
-    enum FlagBits
+    enum FlagBits : uint8_t
     {
         MIP_FLAG_RADAR_VALID     = (1 << 0),
         MIP_FLAG_SHAKE_DETECTED  = (1 << 1),
