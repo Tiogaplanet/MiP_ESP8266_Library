@@ -1979,10 +1979,10 @@ int8_t MiP::rawGetGameMode(MiPGameMode& mode)
 
 void MiP::setUserData(uint8_t addressOffset, uint8_t userData)
 {
-    uint8_t address = MIP_BASE_EEPROM_ADDRESS + addressOffset;
+    uint8_t address = BASE_EEPROM_ADDRESS + addressOffset;
 
     // Address must be between 0x20 and 0x2F, inclusive.
-    MIP_ASSERT( MIP_BASE_EEPROM_ADDRESS <= address && address <= MIP_LAST_EEPROM_ADDRESS );
+    MIP_ASSERT( BASE_EEPROM_ADDRESS <= address && address <= LAST_EEPROM_ADDRESS );
 
     int8_t result;
 
@@ -2020,10 +2020,10 @@ void MiP::setUserData(uint8_t addressOffset, uint8_t userData)
 
 uint8_t MiP::getUserData(uint8_t addressOffset)
 {
-    uint8_t address = MIP_BASE_EEPROM_ADDRESS + addressOffset;
+    uint8_t address = BASE_EEPROM_ADDRESS + addressOffset;
 
     // Address must be between 0x20 and 0x2F, inclusive.
-    MIP_ASSERT( MIP_BASE_EEPROM_ADDRESS <= address && address <= MIP_LAST_EEPROM_ADDRESS );
+    MIP_ASSERT( BASE_EEPROM_ADDRESS <= address && address <= LAST_EEPROM_ADDRESS );
 
    int8_t result;
 

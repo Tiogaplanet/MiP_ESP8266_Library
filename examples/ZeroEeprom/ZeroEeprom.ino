@@ -32,7 +32,7 @@ void setup() {
   Serial1.println(F("ZeroEeprom.ino - Writes zeros to each byte in EEPROM."));
 
   // Variable i is the EEPROM address offset where we will start writing zeroes.
-  for (uint8_t i = 0x00; i <= MIP_LAST_EEPROM_ADDRESS - MIP_BASE_EEPROM_ADDRESS; i++) {
+  for (uint8_t i = 0x00; i <= MiP::LAST_EEPROM_ADDRESS - MiP::BASE_EEPROM_ADDRESS; i++) {
     mip.setUserData(i, 0x00);
     delay(1000);
 
@@ -43,4 +43,3 @@ void setup() {
 
 void loop() {
 }
-
