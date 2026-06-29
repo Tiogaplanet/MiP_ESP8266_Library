@@ -232,7 +232,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 
     ArduinoOTA.begin();
 
-    MIP_DEBUG_INFO_PRINTF("MiP: IP address: %d.%d.%d.%d\r\n", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+	MIP_DEBUG_INFO_PRINTLN("MiP: IP address: " + WiFi.localIP().toString());
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified
