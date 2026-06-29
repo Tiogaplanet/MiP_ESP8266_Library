@@ -16,7 +16,7 @@
     setUserData()
     getUserData()
 */
-#include <mip_esp8266.h>
+#include <MPU_D1_mini.h>
 
 MiP     mip;
 uint8_t eepromContents;
@@ -36,9 +36,9 @@ void setup() {
     mip.setUserData(i, 0x00);
     delay(1000);
 
-    Serial1.print(F("0x2")); Serial1.print(i, HEX); Serial1.print(F(": ")); Serial1.print(F("0x0")); Serial1.println(mip.getUserData(i), HEX);
+    Serial1.print(F(" 0x2")); Serial1.print(i, HEX); Serial1.print(F(": ")); Serial1.print(F("0x0")); Serial1.println(mip.getUserData(i), HEX);
   }
-  Serial1.print(F("Done."));
+  Serial1.print(F("ZeroEeprom.ino: Done."));
 }
 
 void loop() {

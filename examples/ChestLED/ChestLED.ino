@@ -28,7 +28,7 @@ void setup() {
     return;
   }
 
-  Serial1.println(F("ChestLED.ino: Set Chest LED to different colors.\n"));
+  Serial1.println(F("ChestLED.ino: Set Chest LED to different colors."));
 
   Serial1.println(F(" Set chest LED to magenta, no time specified."));
   uint8_t red = 0xff;
@@ -95,7 +95,7 @@ static void printCurrentChestLEDSetting() {
   MiPChestLED chestLED;
   mip.readChestLED(chestLED);
 
-  Serial1.println(F("Current Chest LED Setting"));
+  Serial1.println(F(" Current Chest LED Setting"));
   Serial1.print(F("    red: "));
     Serial1.println(chestLED.red);
   Serial1.print(F("    green: "));

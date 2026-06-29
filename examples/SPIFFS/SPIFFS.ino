@@ -33,7 +33,7 @@ void setup() {
   Serial1.println(F(" Chest turns violet if the read matches the write, else red.\n"));
 
   // The call to begin() mounts the flash filesystem.
-  (SPIFFS.begin())  ? Serial1.println(F("SPIFFS opened.")) : Serial1.println(F("\n\nSPIFFS failed to open."));
+  (SPIFFS.begin())  ? Serial1.println(F(" SPIFFS opened.")) : Serial1.println(F("\n\nSPIFFS failed to open."));
 
   // Open the file in write mode.
   File f = SPIFFS.open("/f.txt", "w");

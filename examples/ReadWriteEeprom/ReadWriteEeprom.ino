@@ -25,7 +25,8 @@ const uint8_t eepromAddressOffset = 0x00;
 
 // Try different hex values here to see them stored and
 // recovered from EEPROM.
-uint8_t       secretPassword = 0x0D;
+uint8_t secretPassword = 0x0D;
+uint8_t recoveredPassword;
 
 void setup() {
   bool connectResult = mip.begin();
@@ -36,8 +37,8 @@ void setup() {
 
   Serial1.println(F("ReadWriteEeprom.ino: Writes data to EEPROM and reads it back."));
 
-  Serial1.print(F("Original password: "));
-  Serial1.println(secretPassword, HEX);
+  Serial1.print(F(" Original password: "));
+  Serial1.printf("0x%02X\n\r", secretPassword); 
 
   // Power-off the MiP, comment out this line, recompile and load to the ProMini-Pack to see EEPROM
   // data preserved across power cycles.
@@ -46,11 +47,11 @@ void setup() {
   // "Scramble" the secret password.
   secretPassword = 0xFF;
   Serial1.print(F(" Scrambled password: "));
-  Serial1.println(secretPassword, HEX);
+  Serial1.printf("0x%02X\n\r", secretPassword); 
 
   Serial1.print(F(" Recovered password: "));
-  Serial1.print(mip.getUserData(eepromAddressOffset), HEX);
-  
+  Serial1.printf("0x%02X\n\r", mip.getUserData(eepromAddressOffset));
+
   Serial1.println(F("ReadWriteEeprom.ino: Done."));
 }
 

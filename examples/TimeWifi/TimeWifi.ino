@@ -33,10 +33,12 @@ void setup() {
     return;
   }
 
+  Serial1.println(F("TimeWifi.ino: Make MiP a clock!  Display time using the eyes."));
+
   configTime(-4 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  Serial1.println("\n Waiting for time");
+  Serial1.println(F("\n Waiting for time"));
   while (!time(nullptr)) {
-    Serial1.print(".");
+    Serial1.print(F("."));
     delay(1000);
   }
 }
@@ -46,6 +48,7 @@ void loop() {
 
   time_t now = time(nullptr);                 // Read the time from NTP.
   struct tm * timeinfo;
+  Serial1.print(F(" "));
   Serial1.println(ctime(&now));
   timeinfo = localtime(&now);
 

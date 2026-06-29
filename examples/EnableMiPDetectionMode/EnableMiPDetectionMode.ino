@@ -33,7 +33,7 @@ void setup() {
     return;
   }
 
-  Serial1.println(F("EnableMiPDetectionMode.ino: Enable your MiP to be discovered by another using IR."));
+  Serial1.println(F("EnableMiPDetectionMode.ino: Enable MiP to be discovered by another MiP using IR."));
 
   mip.disableMiPDetectionMode();
   

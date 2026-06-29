@@ -32,8 +32,12 @@ void setup() {
     return;
   }
 
-  Serial1.print(F("BareMinimumWifi.ino: IP address: ")); // You could delete this chunk of code.  
-  Serial1.println(WiFi.localIP());                       // It's here only to show your IP address.
+  Serial1.println(F("BareMinimumWifi.ino: Connect to a wireless access point."));
+
+  Serial1.print(F(" IP address: "));          // You could delete this chunk of code.  
+  Serial1.println(WiFi.localIP());            // It's here only to show your IP address.
+
+  Serial1.println(F("BareMinimumWifi.ino: Done."));
 }
 
 void loop() {

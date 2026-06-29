@@ -27,8 +27,7 @@ void setup() {
     return;
   }
 
-  Serial1.println(F("RawSendReceive.ino: Use raw*() functions.\n"
-                   "Should set chest LED to purple and display MiP firmware revision"));
+  Serial1.println(F("RawSendReceive.ino: Use raw*() functions. Should set chest LED to purple and display MiP firmware revision."));
 
   // Send 4-byte MiP command to set Chest LED to Purple.
   uint8_t setChestPurple[] = "\x84\xFF\x01\xFF";
@@ -41,7 +40,7 @@ void setup() {
   int result = mip.rawReceive(getMiPSoftwareVersion, sizeof(getMiPSoftwareVersion) - 1,
                               response, sizeof(response), responseLength);
   if (result == MIP_ERROR_NONE && responseLength == 5 && response[0] == 0x14) {
-    Serial1.print(F("MiP Software Version: "));
+    Serial1.print(F(" MiP Software Version: "));
     Serial1.print(response[1] + 2000);
     Serial1.print('-');
     Serial1.print(response[2]);

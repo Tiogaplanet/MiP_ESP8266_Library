@@ -34,42 +34,42 @@ void setup() {
 
   Serial1.println(F("GestureRadarMode.ino: Switches between gesture, radar, and default modes."));
 
-  Serial1.println(F("Calling mip.enableRadarMode()"));
+  Serial1.println(F(" Calling mip.enableRadarMode()"));
   mip.enableRadarMode();
-  Serial1.print(F("mip.isRadarModeEnabled() = "));
+  Serial1.print(F(" mip.isRadarModeEnabled() = "));
   if (mip.isRadarModeEnabled()) {
     Serial1.println(F("true - Pass"));
   } else {
     Serial1.println(F("false - Failed"));
   }
 
-  Serial1.println(F("Calling mip.disableRadarMode()"));
+  Serial1.println(F(" Calling mip.disableRadarMode()"));
   mip.disableRadarMode();
-  Serial1.print(F("mip.isRadarModeEnabled() = "));
+  Serial1.print(F(" mip.isRadarModeEnabled() = "));
   if (mip.isRadarModeEnabled()) {
     Serial1.println(F("true - Failed"));
   } else {
     Serial1.println(F("false - Pass"));
   }
 
-  Serial1.println(F("Calling mip.enableGestureMode()"));
+  Serial1.println(F(" Calling mip.enableGestureMode()"));
   mip.enableGestureMode();
-  Serial1.print(F("mip.isGestureModeEnabled() = "));
+  Serial1.print(F(" mip.isGestureModeEnabled() = "));
   if (mip.isGestureModeEnabled()) {
     Serial1.println(F("true - Pass"));
   } else {
     Serial1.println(F("false - Failed"));
   }
 
-  Serial1.println(F("Calling mip.disableGestureMode()"));
+  Serial1.println(F(" Calling mip.disableGestureMode()"));
   mip.disableGestureMode();
-  Serial1.print(F("mip.isGestureModeEnabled() = "));
+  Serial1.print(F(" mip.isGestureModeEnabled() = "));
   if (mip.isGestureModeEnabled()) {
     Serial1.println(F("true - Failed"));
   } else {
     Serial1.println(F("false - Pass"));
   }
-  Serial1.print(F("mip.areGestureAndRadarModesDisabled() = "));
+  Serial1.print(F(" mip.areGestureAndRadarModesDisabled() = "));
   if (mip.areGestureAndRadarModesDisabled()) {
     Serial1.println(F("true - Pass"));
   } else {

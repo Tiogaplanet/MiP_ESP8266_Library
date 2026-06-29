@@ -27,7 +27,7 @@ void setup() {
     return;
   }
 
-  Serial1.println(F("Volume.ino: Use read/writeVolume(). Set volume level to 1 and read out afterwards."));
+  Serial1.println(F("Volume.ino: Use read/writeVolume(). Set volume level to off (0) and read out afterwards."));
 
   mip.writeVolume(MIP_VOLUME_OFF);
 
