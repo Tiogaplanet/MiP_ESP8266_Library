@@ -188,6 +188,13 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
       attempts++;
     }
 
+	if (WiFi.status() == WL_CONNECTED) {
+		MIP_DEBUG_INFO_PRINTLN(F("MiP: WiFi connected successfully"));
+	} else {
+		MIP_DEBUG_WARN_PRINTLN(F("MiP: WiFi connection failed after maximum attempts"));
+		// Still return the UART result, but user can check WiFi.status()
+    }
+
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH)
