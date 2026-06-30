@@ -165,8 +165,8 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 {
     bool returnValue = begin();
 
-	// Memory-safe string copy operations to address bug:
-	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/26
+    // Memory-safe string copy operations to address bug:
+    // https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/26
     strncpy(m_ssid, ssid, sizeof(m_ssid) - 1);
     m_ssid[sizeof(m_ssid) - 1] = '\0'; // Ensure null-termination
 
@@ -175,12 +175,12 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 
     strncpy(m_hostname, hostname, sizeof(m_hostname) - 1);
     m_hostname[sizeof(m_hostname) - 1] = '\0'; // Ensure null-termination
-	
+
     WiFi.hostname(m_hostname);
     WiFi.begin(m_ssid, m_password);
 
-	// Non-blocking status loop to address bug:
-	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/25
+    // Non-blocking status loop to address bug:
+    // https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/25
     uint8_t attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 20) {
       MIP_DEBUG_WARN_PRINTLN(F("MiP: Internet connection failed. Retrying..."));
@@ -205,34 +205,34 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     ArduinoOTA.onEnd([]() {
         MIP_DEBUG_INFO_PRINTLN(F("End"));
     });
-	// Correct formatted percentage string to address bug:
-	// https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/27
-	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    // Correct formatted percentage string to address bug:
+    // https://github.com/Tiogaplanet/MiP_ESP8266_Library/issues/27
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
       if (total == 0) return;
       MIP_DEBUG_INFO_PRINTF("Progress: %u%%\r", (progress * 100) / total);
-	});
+    });
     ArduinoOTA.onError([](ota_error_t error) {
         MIP_DEBUG_ERROR_PRINTF("Error[%u]: ", error);
         if (error == OTA_AUTH_ERROR) {
-			MIP_DEBUG_ERROR_PRINTLN(F("Auth Failed"));
-		}
+            MIP_DEBUG_ERROR_PRINTLN(F("Auth Failed"));
+        }
         else if (error == OTA_BEGIN_ERROR) {
-			MIP_DEBUG_ERROR_PRINTLN(F("Begin Failed"));
-		}
+            MIP_DEBUG_ERROR_PRINTLN(F("Begin Failed"));
+        }
         else if (error == OTA_CONNECT_ERROR) {
-			MIP_DEBUG_ERROR_PRINTLN(F("Connect Failed"));
-		}
+            MIP_DEBUG_ERROR_PRINTLN(F("Connect Failed"));
+        }
         else if (error == OTA_RECEIVE_ERROR) {
-			MIP_DEBUG_ERROR_PRINTLN(F("Receive Failed"));
-		}
+            MIP_DEBUG_ERROR_PRINTLN(F("Receive Failed"));
+        }
         else if (error == OTA_END_ERROR) {
-			MIP_DEBUG_ERROR_PRINTLN(F("End Failed"));
-		}
+            MIP_DEBUG_ERROR_PRINTLN(F("End Failed"));
+        }
     });
 
     ArduinoOTA.begin();
 
-	MIP_DEBUG_INFO_PRINTLN(F("MiP: IP address: ") + WiFi.localIP().toString());
+    MIP_DEBUG_INFO_PRINTLN(F("MiP: IP address: ") + WiFi.localIP().toString());
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified
@@ -2164,16 +2164,20 @@ bool MiP::isIRRemoteControlEnabled()
 
     result = rawReceive(remoteControlEnabled, sizeof(remoteControlEnabled), response, sizeof(response), responseLength);
 
-    if (result)
+    if (result != MIP_ERROR_NONE)
     {
-        return result;
+        m_lastError = result;
+        return false;                    // ← FIXED
     }
+
     if (responseLength != sizeof(response) ||
         response[0] != MIP_CMD_GET_IR_REMOTE_CONTROL)
     {
-        return MIP_ERROR_BAD_RESPONSE;
+        m_lastError = MIP_ERROR_BAD_RESPONSE;
+        return false;                    // ← FIXED
     }
 
+    m_lastError = MIP_ERROR_NONE;
     return response[1] == MIP_IR_REMOTE_CONTROL_ENABLE ? true : false;
 }
 
