@@ -171,10 +171,10 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
     m_ssid[sizeof(m_ssid) - 1] = '\0'; // Ensure null-termination
 
     strncpy(m_password, password, sizeof(m_password) - 1);
-    m_ssid[sizeof(m_ssid) - 1] = '\0'; // Ensure null-termination
+    m_password[sizeof(m_password) - 1] = '\0'; // Ensure null-termination
 
     strncpy(m_hostname, hostname, sizeof(m_hostname) - 1);
-    m_ssid[sizeof(m_hostname) - 1] = '\0'; // Ensure null-termination
+    m_hostname[sizeof(m_hostname) - 1] = '\0'; // Ensure null-termination
 	
     WiFi.hostname(m_hostname);
     WiFi.begin(m_ssid, m_password);
@@ -232,7 +232,7 @@ bool MiP::begin(const char* ssid, const char* password, const char* hostname)
 
     ArduinoOTA.begin();
 
-	MIP_DEBUG_INFO_PRINTLN("MiP: IP address: " + WiFi.localIP().toString());
+	MIP_DEBUG_INFO_PRINTLN(F("MiP: IP address: ") + WiFi.localIP().toString());
 
     // Set up mDNS responder using the user-specified hostname and ending with ".local".
     // For example, if the user provides the hostname "HappyMiP" the fully-qualified

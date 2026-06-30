@@ -36,7 +36,7 @@
 
 // Default to NONE if not defined by the user in the sketch.
 #ifndef MIP_DEBUG_LEVEL
-  #define MIP_DEBUG_LEVEL MIP_DEBUG_ERROR
+  #define MIP_DEBUG_LEVEL MIP_DEBUG_INFO
 #endif
 
 // Create the macros for conditional printing of debug messages via Serial1.
