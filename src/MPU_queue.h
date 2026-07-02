@@ -13,9 +13,7 @@
    limitations under the License.
 */
 /* Circular queue used internally by the MPU library. Overwrites oldest items once it is full.
-
-   NOT THREAD SAFE!
-   ****************
+   This class is not thread safe.  This class does not interact with MiP.
 */
 #ifndef QUEUE_H_
 #define QUEUE_H_

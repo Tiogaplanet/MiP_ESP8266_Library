@@ -18,7 +18,7 @@
 */
 #include <MPU_D1_mini.h>
 
-MiP     mip;
+MiP mip;
 
 void setup() {
   bool connectResult = mip.begin();
@@ -29,10 +29,12 @@ void setup() {
 
   Serial1.println(F("TurnLeftRight.ino: Use turnLeft & turnRight() functions. Turn 180 degrees to left and then 180 degrees to right."));
 
-  mip.turnLeft(180, 12);
-  delay(2000);
-  mip.turnRight(180, 12);
-  delay(2000);
+  for (uint8_t i = 0; i < 3; i++) {
+    mip.turnLeft(180, 12);
+    delay(2000);
+    mip.turnRight(180, 12);
+    delay(2000);
+  }
 
   Serial1.println();
   Serial1.println(F("TurnLeftRight.ino: Done."));

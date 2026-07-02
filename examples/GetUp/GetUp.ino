@@ -22,12 +22,13 @@ MiP     mip;
 void setup() {
   bool connectResult = mip.begin();
   if (!connectResult) {
-    Serial1.println(F("GetUp.ino: ailed connecting to MiP!"));
+    Serial1.println(F("GetUp.ino: Failed connecting to MiP!"));
     return;
   }
 
   Serial1.println(F("GetUp.ino: Use getUp(). Attempt to get up from a front fall."));
-
+  Serial1.println(F("GetUp.ino: (This one never works!)"));
+  
   mip.fallForward();
   delay(3000);
 

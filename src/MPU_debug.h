@@ -16,8 +16,8 @@
    This header file describes the public API for sending debug messages to a telnet client.
    Written by Samuel Trassare and based on Joao Lopes' original RemoteDebug library.
  */
-#ifndef MIPDEBUG_H
-#define MIPDEBUG_H
+#ifndef MPU_DEBUG_H
+#define MPU_DEBUG_H
 
 #include <ESP8266WiFi.h>
 #include "Arduino.h"

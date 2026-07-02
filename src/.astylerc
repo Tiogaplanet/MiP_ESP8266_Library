@@ -1,0 +1,19 @@
+# Arduino-like Clang Style Configuration for AStyle
+
+# Style Base
+style=java            # Uses attached braces for functions and classes
+
+# Tab and Indentation
+indent=spaces=2       # Arduino default uses 2 spaces per indent level
+indent-switches       # Indent case statements inside switches
+indent-preproc-block  # Indent preprocessor blocks
+
+# Padding and Spacing
+pad-oper              # Insert space padding around operators (e.g., v = 1 + 2;)
+pad-header            # Insert space padding after paren headers (e.g., if, for, while)
+unpad-paren           # Remove extra space padding around parenthesis interiors
+
+# Formatting and Layout
+keep-one-line-blocks  # Do not break one-line blocks apart
+keep-one-line-statements # Allow multiple statements on a single line if already there
+convert-tabs          # Converts tabs to spaces

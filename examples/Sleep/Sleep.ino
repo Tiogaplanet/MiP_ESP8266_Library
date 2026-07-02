@@ -47,6 +47,8 @@ void setup() {
   Serial1.println(F(" Putting MiP to sleep."));
   Serial1.println(F(" MiP requires a power cycle before accepting connections again."));
   mip.sleep();
+
+  Serial1.println(F("Sleep.ino: Done."));
 }
 
 void loop() {

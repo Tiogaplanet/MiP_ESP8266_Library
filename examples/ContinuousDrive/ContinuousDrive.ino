@@ -43,8 +43,8 @@ void loop()
   switch (state) {
     case RIGHT_TURN:
       if (elapsedTime < 2000) {
-        // Drive forward at half-speed and turn right at quarter rate.
-        mip.continuousDrive(16, 8);
+        // Drive forward at half-speed and turn right at half rate.
+        mip.continuousDrive(16, 16);
       } else {
         startTime = currentTime;
         state = LEFT_TURN;
@@ -52,8 +52,8 @@ void loop()
       break;
     case LEFT_TURN:
       if (elapsedTime < 2000) {
-        // Drive backward at half-speed and turn left at quarter rate.
-        mip.continuousDrive(-16, -8);
+        // Drive backward at half-speed and turn left at half rate.
+        mip.continuousDrive(-16, -16);
       } else {
         Serial1.println();
         Serial1.println(F("ContinuousDrive.ino: Done."));

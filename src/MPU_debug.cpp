@@ -13,16 +13,16 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 /*
-   This is the implementation of the MiPDebug server for outputting debug messages to telnet.
+   This is the implementation of the MiPDebug server for outputting debug messages to Telnet.
    Written by Samuel Trassare and based on Joao Lopes' original RemoteDebug library.
 */
-#include "MPU_debug.h"
+#include "MPU_Debug.h"
 #include <Arduino.h>
 
-// Define a version number just for this telnet server, not the overall MPU library.
-#define VERSION "1.0.0"
+// Define a version number just for this Telnet server, not the overall MPU library.
+#define VERSION "1.0.1"
 
-// The telnet server instance.
+// The Telnet server instance.
 WiFiServer telnetServer(TELNET_PORT);
 WiFiClient telnetClient;
 
